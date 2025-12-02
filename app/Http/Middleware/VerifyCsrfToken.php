@@ -2,16 +2,19 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-class VerifyCsrfToken extends Middleware
+class VerifyCsrfToken
 {
     /**
-     * The URIs that should be excluded from CSRF verification.
+     * Handle an incoming request.
      *
-     * @var array<int, string>
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    protected $except = [
-        'assignments/*/upload',
-    ];
+    public function handle(Request $request, Closure $next): Response
+    {
+        return $next($request);
+    }
 }

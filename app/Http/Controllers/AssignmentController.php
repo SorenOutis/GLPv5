@@ -37,6 +37,14 @@ class AssignmentController extends Controller
 
     public function upload(Request $request, Assignment $assignment)
     {
+        // Debug logging
+        \Log::info('Upload method called', [
+            'assignment_id' => $assignment->id,
+            'method' => $request->method(),
+            'has_file' => $request->hasFile('file'),
+            'user_id' => auth()->id(),
+        ]);
+
         $request->validate([
             'file' => 'required|file|max:102400', // 100MB
             'notes' => 'nullable|string|max:1000',

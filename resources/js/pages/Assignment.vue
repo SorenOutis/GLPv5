@@ -122,69 +122,77 @@ const handleFileSelect = (event: Event) => {
 };
 
 const submitAssignment = async () => {
-     if (!currentUploadAssignment.value || !uploadForm.file) {
-         alert('Please select a file');
-         return;
-     }
+    if (!currentUploadAssignment.value || !uploadForm.file) {
+        alert('Please select a file');
+        return;
+    }
 
-     isUploading.value = true;
-     uploadProgress.value = 0;
+    isUploading.value = true;
+    uploadProgress.value = 0;
 
-     // Create FormData for file upload
-     const formData = new FormData();
-     formData.append('file', uploadForm.file);
-     formData.append('notes', uploadForm.notes);
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('file', uploadForm.file);
+    formData.append('notes', uploadForm.notes);
 
-     // Get the upload URL
-     const assignmentId = currentUploadAssignment.value.id;
-     const uploadUrl = `/assignments/${assignmentId}/upload`;
-     console.log('Upload URL:', uploadUrl);
-     console.log('Sending upload request with file:', uploadForm.file.name, 'size:', uploadForm.file.size);
+    // Get the upload URL
+    const assignmentId = currentUploadAssignment.value.id;
+    const uploadUrl = `/assignments/${assignmentId}/upload`;
+    console.log('Upload URL:', uploadUrl);
+    console.log('Sending upload request with file:', uploadForm.file.name, 'size:', uploadForm.file.size);
 
-     // Use fetch API with proper headers
-     try {
-         // Get CSRF token from Inertia page props
-         const page = usePage();
-         const csrfToken = page.props.csrf_token as string;
-         console.log('CSRF Token:', csrfToken ? 'present' : 'missing');
+    // Use fetch API with proper headers
+    try {
+        // Get CSRF token from cookie
+        const getCookie = (name: string) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+        };
+        
+        const csrfToken = getCookie('XSRF-TOKEN');
+        console.log('CSRF Token from cookie:', csrfToken ? 'present' : 'missing');
 
-         const headers: Record<string, string> = {
-             'Accept': 'application/json',
-             'X-CSRF-TOKEN': csrfToken,
-         };
+        const headers: Record<string, string> = {
+            'Accept': 'application/json',
+        };
+        
+        if (csrfToken) {
+            headers['X-CSRF-TOKEN'] = csrfToken;
+        }
 
-         const response = await fetch(uploadUrl, {
-             method: 'POST',
-             body: formData,
-             credentials: 'same-origin',
-             headers: headers,
-         });
+        const response = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: headers,
+        });
 
-         console.log('Upload completed with status:', response.status);
-         
-         if (response.ok) {
-             uploadProgress.value = 100;
-             const data = await response.json();
-             setTimeout(() => {
-                 closeUploadDialog();
-                 // Reload the page to show updated submission status
-                 window.location.reload();
-             }, 500);
-         } else {
-             console.error('Upload failed with status:', response.status);
-             const errorText = await response.text();
-             console.error('Response:', errorText);
-             isUploading.value = false;
-             uploadProgress.value = 0;
-             alert('Failed to upload assignment. Server error: ' + response.status);
-         }
-     } catch (error) {
-         console.error('Upload error:', error);
-         isUploading.value = false;
-         uploadProgress.value = 0;
-         alert('Failed to upload assignment. Network error. Please try again.');
-     }
- };
+        console.log('Upload completed with status:', response.status);
+        
+        if (response.ok) {
+            uploadProgress.value = 100;
+            const data = await response.json();
+            setTimeout(() => {
+                closeUploadDialog();
+                // Reload the page to show updated submission status
+                window.location.reload();
+            }, 500);
+        } else {
+            console.error('Upload failed with status:', response.status);
+            const errorText = await response.text();
+            console.error('Response:', errorText);
+            isUploading.value = false;
+            uploadProgress.value = 0;
+            alert('Failed to upload assignment. Server error: ' + response.status);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        isUploading.value = false;
+        uploadProgress.value = 0;
+        alert('Failed to upload assignment. Network error. Please try again.');
+    }
+};
 </script>
 
 <template>
