@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import Button from '@/components/ui/button/Button.vue';
@@ -23,6 +24,29 @@ withDefaults(
 );
 
 const { appearance, updateAppearance } = useAppearance();
+const currentDateTime = ref<string>('');
+const userStatus = ref<string>('online');
+
+const updateDateTime = () => {
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+    });
+    const formattedTime = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    });
+    currentDateTime.value = `${formattedDate}, ${formattedTime}`;
+};
+
+onMounted(() => {
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 60000); // Update every minute
+    onUnmounted(() => clearInterval(interval));
+});
 </script>
 
 <template>
@@ -36,7 +60,18 @@ const { appearance, updateAppearance } = useAppearance();
             </template>
         </div>
 
-        <!-- Theme Toggle -->
+        <div class="flex items-center gap-4">
+            <!-- Status and DateTime -->
+            <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                <div class="flex items-center gap-1">
+                    <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                    <span class="capitalize">{{ userStatus }}</span>
+                </div>
+                <span class="text-xs">•</span>
+                <span>{{ currentDateTime }}</span>
+            </div>
+
+            <!-- Theme Toggle -->
         <DropdownMenu>
             <DropdownMenuTrigger as-child>
                 <Button variant="ghost" size="icon">
@@ -105,5 +140,6 @@ const { appearance, updateAppearance } = useAppearance();
                 </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>
+        </div>
     </header>
 </template>
