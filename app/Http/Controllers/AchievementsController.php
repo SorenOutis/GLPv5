@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Achievement;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -10,157 +11,35 @@ class AchievementsController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $achievements = Achievement::where('is_active', true)
+            ->with('users')
+            ->get();
+
+        $allAchievements = $achievements->map(fn($achievement) => [
+            'id' => $achievement->id,
+            'name' => $achievement->name,
+            'description' => $achievement->description,
+            'icon' => $achievement->icon,
+            'category' => $achievement->category,
+            'difficulty' => $achievement->difficulty,
+            'xp_reward' => $achievement->xp_reward,
+            'unlocked' => $achievement->users->contains($user->id),
+            'unlockedAt' => $achievement->users
+                ->find($user->id)?->pivot->unlocked_at?->format('M d, Y'),
+        ]);
+
+        $unlockedCount = $allAchievements->filter(fn($a) => $a['unlocked'])->count();
+        $totalCount = $allAchievements->count();
 
         return Inertia::render('Achievements', [
-            'unlockedAchievements' => [
-                [
-                    'id' => 1,
-                    'name' => 'First Steps',
-                    'description' => 'Complete your first lesson',
-                    'icon' => '🎓',
-                    'category' => 'Learning',
-                    'difficulty' => 'Easy',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 1, 2023',
-                    'xpReward' => 50,
-                    'rarity' => 95,
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Course Starter',
-                    'description' => 'Enroll in your first course',
-                    'icon' => '📚',
-                    'category' => 'Courses',
-                    'difficulty' => 'Easy',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 2, 2023',
-                    'xpReward' => 75,
-                    'rarity' => 92,
-                ],
-                [
-                    'id' => 3,
-                    'name' => 'Streak Master',
-                    'description' => 'Maintain a 7-day learning streak',
-                    'icon' => '🔥',
-                    'category' => 'Consistency',
-                    'difficulty' => 'Medium',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 15, 2023',
-                    'xpReward' => 150,
-                    'rarity' => 45,
-                ],
-                [
-                    'id' => 4,
-                    'name' => 'Quiz Champion',
-                    'description' => 'Score 100% on a quiz',
-                    'icon' => '🏆',
-                    'category' => 'Performance',
-                    'difficulty' => 'Medium',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 20, 2023',
-                    'xpReward' => 200,
-                    'rarity' => 38,
-                ],
-                [
-                    'id' => 5,
-                    'name' => 'Level 10',
-                    'description' => 'Reach level 10',
-                    'icon' => '⭐',
-                    'category' => 'Progression',
-                    'difficulty' => 'Medium',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 25, 2023',
-                    'xpReward' => 250,
-                    'rarity' => 42,
-                ],
-                [
-                    'id' => 6,
-                    'name' => 'Speed Learner',
-                    'description' => 'Complete 5 lessons in one day',
-                    'icon' => '⚡',
-                    'category' => 'Speed',
-                    'difficulty' => 'Medium',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 28, 2023',
-                    'xpReward' => 175,
-                    'rarity' => 35,
-                ],
-                [
-                    'id' => 7,
-                    'name' => 'Course Completer',
-                    'description' => 'Complete an entire course',
-                    'icon' => '✓',
-                    'category' => 'Courses',
-                    'difficulty' => 'Medium',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Dec 30, 2023',
-                    'xpReward' => 300,
-                    'rarity' => 28,
-                ],
-                [
-                    'id' => 8,
-                    'name' => 'Social Butterfly',
-                    'description' => 'Help 10 other users',
-                    'icon' => '🦋',
-                    'category' => 'Community',
-                    'difficulty' => 'Hard',
-                    'unlocked' => true,
-                    'unlockedAt' => 'Jan 2, 2024',
-                    'xpReward' => 400,
-                    'rarity' => 15,
-                ],
-            ],
-            'lockedAchievements' => [
-                [
-                    'id' => 9,
-                    'name' => 'Level 20',
-                    'description' => 'Reach level 20',
-                    'icon' => '🎯',
-                    'category' => 'Progression',
-                    'difficulty' => 'Hard',
-                    'unlocked' => false,
-                    'xpReward' => 500,
-                    'rarity' => 12,
-                ],
-                [
-                    'id' => 10,
-                    'name' => 'Month Champion',
-                    'description' => 'Be top learner for a month',
-                    'icon' => '👑',
-                    'category' => 'Competition',
-                    'difficulty' => 'Hard',
-                    'unlocked' => false,
-                    'xpReward' => 750,
-                    'rarity' => 5,
-                ],
-                [
-                    'id' => 11,
-                    'name' => 'Master of All',
-                    'description' => 'Complete 10 courses',
-                    'icon' => '🧙',
-                    'category' => 'Mastery',
-                    'difficulty' => 'Legendary',
-                    'unlocked' => false,
-                    'xpReward' => 2000,
-                    'rarity' => 2,
-                ],
-                [
-                    'id' => 12,
-                    'name' => '30 Day Streak',
-                    'description' => 'Maintain a 30-day learning streak',
-                    'icon' => '🔗',
-                    'category' => 'Consistency',
-                    'difficulty' => 'Legendary',
-                    'unlocked' => false,
-                    'xpReward' => 1500,
-                    'rarity' => 1,
-                ],
-            ],
+            'allAchievements' => $allAchievements,
             'stats' => [
-                'totalUnlocked' => 8,
-                'totalAchievements' => 12,
-                'completionPercentage' => 67,
-                'xpEarned' => 1550,
+                'totalUnlocked' => $unlockedCount,
+                'totalAchievements' => $totalCount,
+                'completionPercentage' => $totalCount > 0 ? round(($unlockedCount / $totalCount) * 100) : 0,
+                'xpEarned' => $allAchievements
+                    ->filter(fn($a) => $a['unlocked'])
+                    ->sum('xp_reward'),
             ],
         ]);
     }

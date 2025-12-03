@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Achievement extends Model
 {
     protected $fillable = [
-        'title',
+        'name',
         'description',
         'icon',
-        'criteria',
+        'category',
+        'difficulty',
         'xp_reward',
         'is_active',
     ];
@@ -22,7 +23,7 @@ class Achievement extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(User::class, 'achievement_user')
             ->withTimestamps()
             ->withPivot('unlocked_at');
     }
