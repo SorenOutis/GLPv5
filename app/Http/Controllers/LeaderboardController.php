@@ -14,9 +14,9 @@ class LeaderboardController extends Controller
         $currentUser = Auth::user();
         $currentProfile = $currentUser->profile;
 
-        // Get all users with their profiles, ordered by total XP (for leaderboard display)
+        // Get all users with their profiles and streaks, ordered by total XP (for leaderboard display)
         // Exclude admin and staff users - only show students
-        $allUsers = User::with('profile')
+        $allUsers = User::with('profile', 'streak')
             ->whereHas('profile')
             ->where('id', '>', 1) // Exclude first user (admin)
             ->get()
@@ -34,19 +34,25 @@ class LeaderboardController extends Controller
             // Map levels to rank positions: Level 1 = Rank 131+, Level 2 = Rank 101-130, etc.
             $rankTier = $this->getRankTierByLevel((int) $user->profile->level);
             
+            // Get streak from new Streak model, fallback to profile streak_days
+            $streakDays = $user->streak ? $user->streak->current_streak : (int) $user->profile->streak_days;
+            
             return [
                 'rank' => $index + 1,
                 'userId' => $user->id,
                 'name' => $user->name,
                 'xp' => (int) $user->profile->total_xp,
                 'level' => (int) $user->profile->level,
-                'streakDays' => (int) $user->profile->streak_days,
+                'streakDays' => $streakDays,
                 'achievements' => $achievements,
                 'isCurrentUser' => $user->id === $currentUser->id,
                 'rankTier' => $rankTier,
             ];
         })->toArray();
 
+        // Get current user's streak
+        $currentUserStreak = $currentUser->streak ? $currentUser->streak->current_streak : 0;
+        
         // Get current user's rank
         $currentUserRank = collect($leaderboardEntries)
             ->where('userId', $currentUser->id)
@@ -56,7 +62,7 @@ class LeaderboardController extends Controller
             'name' => $currentUser->name,
             'xp' => 0,
             'level' => 1,
-            'streakDays' => 0,
+            'streakDays' => $currentUserStreak,
             'achievements' => 0,
             'isCurrentUser' => true,
             'rankTier' => $this->getRankTierByLevel(1),

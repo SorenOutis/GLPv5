@@ -7,6 +7,7 @@ use App\Models\AssignmentSubmission;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\ProgressMetric;
+use App\Models\Streak;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -36,11 +37,17 @@ class ProgressController extends Controller
             ? (int) $enrollments->average('progress_percentage') 
             : 0;
 
-        // Get metrics and update XP Gained with actual user XP
+        // Get streak data
+        $streak = Streak::where('user_id', $user->id)->first();
+
+        // Get metrics and update XP Gained with actual user XP and Current Streak
         $metrics = ProgressMetric::getActive()->toArray();
-        $metrics = array_map(function($metric) use ($profile) {
+        $metrics = array_map(function($metric) use ($profile, $streak) {
             if ($metric['name'] === 'XP Gained') {
                 $metric['current'] = $profile?->total_xp ?? 0;
+            }
+            if ($metric['name'] === 'Current Streak') {
+                $metric['current'] = $streak?->current_streak ?? 0;
             }
             return $metric;
         }, $metrics);

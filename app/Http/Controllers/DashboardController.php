@@ -20,6 +20,14 @@ class DashboardController extends Controller
             'rank_title' => 'Plastic',
         ]);
 
+        // Get streak information from new Streak model
+        $streak = $user->streak()->firstOrCreate([], [
+            'current_streak' => 0,
+            'longest_streak' => 0,
+            'last_login_date' => null,
+            'last_login_at' => null,
+        ]);
+
         // Get total XP from profile (includes both assignment XP and manually awarded points)
         $totalXP = $profile->total_xp;
         $level = $profile->level;
@@ -133,6 +141,11 @@ class DashboardController extends Controller
                 'rank' => $profile->rank_title,
                 'streakDays' => $profile->streak_days,
                 'achievements' => $achievements->count(),
+            ],
+            'streak' => [
+                'currentStreak' => $streak->current_streak,
+                'longestStreak' => $streak->longest_streak,
+                'lastLoginDate' => $streak->last_login_date,
             ],
             'courses' => $courses,
             'assignments' => $assignments,

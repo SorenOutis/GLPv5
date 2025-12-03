@@ -11,6 +11,7 @@ import CardContent from '@/components/ui/card/CardContent.vue';
 import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
+import StreakCard from '@/components/StreakCard.vue';
 import {
     Dialog,
     DialogContent,
@@ -74,6 +75,12 @@ interface Assignment {
     grade: number | null;
 }
 
+interface StreakData {
+    currentStreak: number;
+    longestStreak: number;
+    lastLoginDate: string | null;
+}
+
 interface Props {
     userStats: UserStats;
     courses: Course[];
@@ -81,6 +88,7 @@ interface Props {
     leaderboard: LeaderboardEntry[];
     achievements: Achievement[];
     recentActivity: Activity[];
+    streak?: StreakData;
 }
 
 const props = defineProps<Props>();
@@ -114,7 +122,6 @@ const selectedAchievement = ref<Achievement | null>(null);
 const selectedLeaderboardEntry = ref<LeaderboardEntry | null>(null);
 const isLevelCardHovered = ref(false);
 const isTotalXPCardHovered = ref(false);
-const isStreakCardHovered = ref(false);
 const isAchievementsCardHovered = ref(false);
 
 const handleCourseClick = (course: Course) => {
@@ -239,45 +246,7 @@ const handleLeaderboardClick = (leader: LeaderboardEntry) => {
                 </Card>
 
                 <!-- Streak Card -->
-                <Card
-                    class="border-sidebar-border/70 dark:border-sidebar-border transition-all duration-200 hover:border-sidebar-border hover:shadow-md dark:hover:shadow-lg cursor-pointer hover:scale-105"
-                    @mouseenter="isStreakCardHovered = true" @mouseleave="isStreakCardHovered = false">
-                    <CardHeader class="pb-2 flex flex-row items-center justify-between space-y-0">
-                        <CardTitle class="text-sm font-medium">Streak</CardTitle>
-                        <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9h8.22v-1.5h-8.22v1.5zm0-3h8.22v-1.5h-8.22v1.5zm0-3h8.22v-1.5h-8.22v1.5z" />
-                        </svg>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-3xl font-bold">{{ userStats.streakDays }}</div>
-                        <div class="mt-4 space-y-2 overflow-hidden">
-                            <!-- Detailed view on hover -->
-                            <div class="transition-all duration-300 ease-out" :style="{
-                                maxHeight: isStreakCardHovered ? '100px' : '0px',
-                                opacity: isStreakCardHovered ? 1 : 0
-                            }">
-                                <div class="text-xs font-medium mb-1">Consistency Progress</div>
-                                <div class="relative h-3 bg-muted rounded-full overflow-hidden">
-                                    <!-- Animated bar for streak -->
-                                    <div class="h-full bg-gradient-to-r from-orange-400 via-orange-500 to-red-500 rounded-full transition-all duration-1000 ease-out"
-                                        :style="{ width: isStreakCardHovered ? `${Math.min(userStats.streakDays * 10, 100)}%` : '0%' }" />
-                                </div>
-                                <div class="text-xs text-muted-foreground mt-2">
-                                    Keep the momentum going!
-                                </div>
-                            </div>
-
-                            <!-- Compact display -->
-                            <div class="transition-all duration-300" :style="{
-                                maxHeight: isStreakCardHovered ? '0px' : '100px',
-                                opacity: isStreakCardHovered ? 0 : 1
-                            }">
-                                <p class="text-xs text-muted-foreground">days in a row</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <StreakCard :streak="streak" />
 
                 <!-- Achievements Card -->
                 <Card
@@ -459,7 +428,7 @@ const handleLeaderboardClick = (leader: LeaderboardEntry) => {
                                     <div class="font-bold text-lg w-6">{{ leader.badge }}</div>
                                     <div class="flex-1">
                                         <p :class="['text-sm font-medium', leader.isUser && 'font-bold']">{{ leader.name
-                                        }}</p>
+                                            }}</p>
                                         <p class="text-xs text-muted-foreground">Lvl {{ leader.level }}</p>
                                     </div>
                                     <div class="text-right">

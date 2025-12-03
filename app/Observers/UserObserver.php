@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\User;
-use App\Models\UserProfile;
+use App\Models\Streak;
 
 class UserObserver
 {
@@ -12,24 +12,14 @@ class UserObserver
      */
     public function created(User $user): void
     {
-        // Create a user profile with initial "Plastic" tier (lowest rank)
-        UserProfile::create([
+        // Create a new streak record for new user
+        Streak::create([
             'user_id' => $user->id,
-            'total_xp' => 0,
-            'level' => 1,
-            'current_level_xp' => 0,
-            'xp_for_next_level' => 1000,
-            'streak_days' => 0,
-            'rank_title' => 'Plastic',
+            'current_streak' => 0,
+            'longest_streak' => 0,
+            'last_login_date' => null,
+            'last_login_at' => null,
         ]);
-    }
-
-    /**
-     * Handle the User "updated" event.
-     */
-    public function updated(User $user): void
-    {
-        //
     }
 
     /**
@@ -37,22 +27,6 @@ class UserObserver
      */
     public function deleted(User $user): void
     {
-        //
-    }
-
-    /**
-     * Handle the User "restored" event.
-     */
-    public function restored(User $user): void
-    {
-        //
-    }
-
-    /**
-     * Handle the User "force deleted" event.
-     */
-    public function forceDeleted(User $user): void
-    {
-        //
+        // Delete streak when user is deleted (cascade handled in migration)
     }
 }

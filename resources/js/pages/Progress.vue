@@ -204,7 +204,7 @@ const getLevelProgressPercentage = () => {
                                         <div class="space-y-2">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm font-medium">
-                                                    {{ metric.current }} / {{ metric.target }} {{ metric.unit }}
+                                                   {{ metric.current }} {{ metric.unit }}
                                                 </span>
                                                 <span class="text-sm text-muted-foreground">
                                                     {{ Math.round(getProgressPercentage(metric)) }}%

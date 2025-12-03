@@ -12,6 +12,14 @@ class QuestsController extends Controller
     {
         $user = Auth::user();
         
+        // Get or create user streak
+        $streak = $user->streak()->firstOrCreate([], [
+            'current_streak' => 0,
+            'longest_streak' => 0,
+            'last_login_date' => null,
+            'last_login_at' => null,
+        ]);
+        
         // Fetch all quests from database
         $allQuests = Quest::all()->toArray();
         
@@ -42,6 +50,11 @@ class QuestsController extends Controller
                 'totalCompleted' => count($completedQuests),
                 'totalRewards' => array_sum(array_map(fn($q) => $q['xp'], $allQuests)),
                 'streakDays' => 6,
+            ],
+            'streak' => [
+                'currentStreak' => $streak->current_streak,
+                'longestStreak' => $streak->longest_streak,
+                'lastLoginDate' => $streak->last_login_date,
             ],
         ]);
     }

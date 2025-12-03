@@ -59,6 +59,11 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\AssignmentSubmission::class);
     }
 
+    public function streak()
+    {
+        return $this->hasOne(\App\Models\Streak::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

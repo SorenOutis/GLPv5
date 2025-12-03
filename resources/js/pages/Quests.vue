@@ -11,6 +11,7 @@ import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
 import Progress from '@/components/ui/progress/Progress.vue';
+import StreakCard from '@/components/StreakCard.vue';
 
 interface Quest {
     id: number;
@@ -23,6 +24,12 @@ interface Quest {
     status: 'active' | 'completed' | 'failed' | 'available';
 }
 
+interface StreakData {
+    currentStreak: number;
+    longestStreak: number;
+    lastLoginDate: string | null;
+}
+
 interface Props {
     activeQuests: Quest[];
     completedQuests: Quest[];
@@ -32,6 +39,7 @@ interface Props {
         totalRewards: number;
         streakDays: number;
     };
+    streak?: StreakData;
 }
 
 const props = defineProps<Props>();
@@ -80,6 +88,7 @@ const getFilteredQuests = () => {
 </script>
 
 <template>
+
     <Head title="Quests" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -116,30 +125,18 @@ const getFilteredQuests = () => {
                     </CardContent>
                 </Card>
 
-                <Card class="border-sidebar-border/70 dark:border-sidebar-border">
-                    <CardHeader class="pb-2">
-                        <CardTitle class="text-sm font-medium">Streak</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ stats.streakDays }}</div>
-                        <p class="text-xs text-muted-foreground mt-1">Days active</p>
-                    </CardContent>
-                </Card>
+                <StreakCard :streak="streak" />
             </div>
 
             <!-- Filter Tabs -->
             <div class="flex gap-2 border-b border-sidebar-border/30">
-                <button
-                    v-for="filter in ['active', 'completed'] as const"
-                    :key="filter"
-                    @click="selectedFilter = filter"
-                    :class="[
+                <button v-for="filter in ['active', 'completed'] as const" :key="filter"
+                    @click="selectedFilter = filter" :class="[
                         'px-4 py-2 text-sm font-medium transition-colors capitalize',
                         selectedFilter === filter
                             ? 'text-accent border-b-2 border-accent'
                             : 'text-muted-foreground hover:text-foreground'
-                    ]"
-                >
+                    ]">
                     {{ filter }} ({{ filter === 'active' ? activeQuests.length : completedQuests.length }})
                 </button>
             </div>
@@ -162,7 +159,8 @@ const getFilteredQuests = () => {
                                             <h3 class="font-semibold text-lg">{{ quest.title }}</h3>
                                             <p class="text-sm text-muted-foreground">{{ quest.objective }}</p>
                                         </div>
-                                        <span :class="['px-2 py-1 text-xs rounded-full font-medium', getDifficultyColor(quest.difficulty)]">
+                                        <span
+                                            :class="['px-2 py-1 text-xs rounded-full font-medium', getDifficultyColor(quest.difficulty)]">
                                             {{ quest.difficulty }}
                                         </span>
                                     </div>
@@ -183,17 +181,20 @@ const getFilteredQuests = () => {
 
                                     <div class="flex items-center gap-4 flex-wrap">
                                         <div class="flex items-center gap-1">
-                                             <span class="text-yellow-500">⭐</span>
-                                             <span class="text-sm font-medium">{{ quest.reward }} XP</span>
-                                         </div>
-                                         <div v-if="selectedFilter === 'completed'" class="text-sm text-green-600 dark:text-green-400">
-                                             ✓ Completed
-                                         </div>
+                                            <span class="text-yellow-500">⭐</span>
+                                            <span class="text-sm font-medium">{{ quest.reward }} XP</span>
+                                        </div>
+                                        <div v-if="selectedFilter === 'completed'"
+                                            class="text-sm text-green-600 dark:text-green-400">
+                                            ✓ Completed
+                                        </div>
 
-                                        <span v-if="selectedFilter === 'completed'" class="px-3 py-1 text-xs rounded-full font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                        <span v-if="selectedFilter === 'completed'"
+                                            class="px-3 py-1 text-xs rounded-full font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                             ✓ Completed
                                         </span>
-                                        <span v-else class="px-3 py-1 text-xs rounded-full font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        <span v-else
+                                            class="px-3 py-1 text-xs rounded-full font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                             In Progress
                                         </span>
                                     </div>
