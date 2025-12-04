@@ -22,6 +22,8 @@ class UserController extends Controller
                 'email' => $user->email,
                 'avatar' => null,
                 'bio' => optional($user->profile)->bio,
+                'cover_photo_path' => $user->cover_photo_path,
+                'profile_photo_path' => $user->profile_photo_path,
                 'joinedDate' => $user->created_at->format('M d, Y'),
             ],
             'stats' => [
@@ -101,6 +103,8 @@ class UserController extends Controller
                 'email' => $user->email,
                 'avatar' => null,
                 'bio' => optional($user->profile)->bio,
+                'cover_photo_path' => $user->cover_photo_path,
+                'profile_photo_path' => $user->profile_photo_path,
                 'joinedDate' => $user->created_at->format('M d, Y'),
             ],
             'stats' => [

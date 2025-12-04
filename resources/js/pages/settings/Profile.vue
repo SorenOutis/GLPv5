@@ -43,6 +43,11 @@ const coverPhotoPreview = ref<string | null>(null);
 const coverPhotoFile = ref<File | null>(null);
 const coverPhotoInput = ref<HTMLInputElement | null>(null);
 
+// Profile photo state
+const profilePhotoPreview = ref<string | null>(null);
+const profilePhotoFile = ref<File | null>(null);
+const profilePhotoInput = ref<HTMLInputElement | null>(null);
+
 // Game-style reactive state
 const profileHovered = ref(false);
 const showConfetti = ref(false);
@@ -160,9 +165,49 @@ const getCoverPhotoUrl = () => {
     return null;
 };
 
+const handleProfilePhotoSelect = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+        profilePhotoFile.value = file;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            profilePhotoPreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const openProfilePhotoUpload = () => {
+    profilePhotoInput.value?.click();
+};
+
+const removeProfilePhoto = () => {
+    profilePhotoFile.value = null;
+    profilePhotoPreview.value = null;
+    if (profilePhotoInput.value) {
+        profilePhotoInput.value.value = '';
+    }
+};
+
+const getProfilePhotoUrl = () => {
+    if (profilePhotoPreview.value) {
+        return profilePhotoPreview.value;
+    }
+    if (user.profile_photo_path) {
+        return `/storage/${user.profile_photo_path}`;
+    }
+    return null;
+};
+
 const onFormSubmit = (form: any) => {
     if (coverPhotoFile.value) {
         form.cover_photo = coverPhotoFile.value;
+    }
+    if (profilePhotoFile.value) {
+        form.profile_photo = profilePhotoFile.value;
     }
 };
 </script>
@@ -181,10 +226,10 @@ const onFormSubmit = (form: any) => {
                     <!-- Cover Photo Section -->
                     <div v-if="getCoverPhotoUrl()" class="relative h-48 overflow-hidden">
                         <img :src="getCoverPhotoUrl()" alt="Cover Photo" class="w-full h-full object-cover" />
-                        <button @click="openCoverPhotoUpload"
+                        <!-- <button @click="openCoverPhotoUpload"
                             class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white px-3 py-2 rounded-lg text-sm transition-colors">
                             📸 Change Cover
-                        </button>
+                        </button> -->
                     </div>
                     <div v-else class="relative h-48 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
                         <button @click="openCoverPhotoUpload"
@@ -219,19 +264,34 @@ const onFormSubmit = (form: any) => {
                         </div>
 
                         <div class="relative z-10 space-y-6">
-                            <!-- Header with Gamertag -->
+                            <!-- Header with Gamertag and Profile Photo -->
                             <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="mb-2 flex items-center gap-2">
-                                        <span class="text-4xl">{{ getGamerTag() }}</span>
+                                <div class="flex items-center gap-4">
+                                    <!-- Profile Photo Avatar -->
+                                    <div
+                                        class="h-20 w-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white shadow-lg relative overflow-hidden group cursor-pointer"
+                                        @click="openProfilePhotoUpload"
+                                    >
+                                        <img 
+                                            v-if="getProfilePhotoUrl()"
+                                            :src="getProfilePhotoUrl()"
+                                            alt="Profile Photo"
+                                            class="w-full h-full object-cover"
+                                        />
+                                        <span v-else>{{ getGamerTag() }}</span>
+                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <span class="text-white text-lg">📸</span>
+                                        </div>
+                                    </div>
+                                    <div>
                                         <h1
                                             class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400">
                                             {{ user.name }}
                                         </h1>
+                                        <p class="text-sm text-purple-300/70">
+                                            Level {{ profileLevel }} Player
+                                        </p>
                                     </div>
-                                    <p class="text-sm text-purple-300/70">
-                                        Level {{ profileLevel }} Player
-                                    </p>
                                 </div>
                             </div>
 
@@ -327,6 +387,37 @@ const onFormSubmit = (form: any) => {
                                 <InputError class="mt-2" :message="errors.cover_photo" />
                                 <div v-if="coverPhotoFile" class="flex items-center gap-2 mt-2">
                                     <button type="button" @click="removeCoverPhoto"
+                                        class="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+                                        ✕ Remove photo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Profile Photo Upload -->
+                            <div class="grid gap-2">
+                                <Label for="profile-photo" class="flex items-center gap-2">
+                                    <span>👤 Profile Photo</span>
+                                </Label>
+                                <input ref="profilePhotoInput" type="file" id="profile-photo" name="profile_photo"
+                                    accept="image/*" class="hidden" @change="handleProfilePhotoSelect" />
+                                <div @click="openProfilePhotoUpload"
+                                    class="relative border-2 border-dashed border-purple-500 rounded-lg p-6 cursor-pointer transition-all hover:border-purple-400 hover:bg-purple-500/5"
+                                    style="border-color: rgba(168, 85, 247, 0.3);">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-purple-300">
+                                                {{ profilePhotoFile ? profilePhotoFile.name : 'Click to select a profile photo' }}
+                                            </p>
+                                            <p class="text-xs text-purple-300/60 mt-1">
+                                                PNG, JPG, GIF or WebP up to 5MB
+                                            </p>
+                                        </div>
+                                        <div class="text-2xl">👤</div>
+                                    </div>
+                                </div>
+                                <InputError class="mt-2" :message="errors.profile_photo" />
+                                <div v-if="profilePhotoFile" class="flex items-center gap-2 mt-2">
+                                    <button type="button" @click="removeProfilePhoto"
                                         class="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
                                         ✕ Remove photo
                                     </button>

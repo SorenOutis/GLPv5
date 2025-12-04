@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import Button from '@/components/ui/button/Button.vue';
 import Card from '@/components/ui/card/Card.vue';
@@ -24,6 +24,7 @@ interface UserProfile {
     email: string;
     avatar?: string;
     cover_photo_path?: string;
+    profile_photo_path?: string;
     bio?: string;
     joinedDate: string;
 }
@@ -74,7 +75,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const selectedAchievement = ref<UserAchievement | null>(null);
-const isEditingProfile = ref(false);
 const profileHovered = ref(false);
 const particles = ref<Array<{ id: number; x: number; y: number }>>([]);
 const particleCounter = ref(0);
@@ -82,15 +82,7 @@ const levelProgressAnimated = ref(0);
 
 // Cover photo state
 const coverPhotoPreview = ref<string | null>(null);
-const coverPhotoFile = ref<File | null>(null);
 const coverPhotoInput = ref<HTMLInputElement | null>(null);
-
-const editedProfile = ref({
-    name: props.user.name,
-    email: props.user.email,
-    bio: props.user.bio || '',
-    cover_photo: null as File | null,
-});
 
 // Animated stats
 const animatedStats = ref([
@@ -156,11 +148,7 @@ const createParticle = (event: MouseEvent) => {
 };
 
 const handleEditClick = () => {
-    isEditingProfile.value = true;
-};
-
-const handleSaveProfile = () => {
-    isEditingProfile.value = false;
+    router.visit('/settings/profile');
 };
 
 const handleAchievementClick = (achievement: UserAchievement) => {
@@ -175,33 +163,8 @@ const getStreakEmoji = () => {
     return '🔥🔥🔥';
 };
 
-const handleCoverPhotoSelect = (event: Event) => {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (file) {
-        coverPhotoFile.value = file;
-        editedProfile.value.cover_photo = file;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            coverPhotoPreview.value = e.target?.result as string;
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
 const openCoverPhotoUpload = () => {
-    coverPhotoInput.value?.click();
-};
-
-const removeCoverPhoto = () => {
-    coverPhotoFile.value = null;
-    coverPhotoPreview.value = null;
-    editedProfile.value.cover_photo = null;
-    if (coverPhotoInput.value) {
-        coverPhotoInput.value.value = '';
-    }
+    router.visit('/settings/profile');
 };
 
 const getCoverPhotoUrl = () => {
@@ -222,32 +185,37 @@ const getCoverPhotoUrl = () => {
         <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
             <!-- User Header Section - Game Style -->
             <div
-                class="relative overflow-hidden rounded-xl border-2 border-sidebar-border/70 dark:border-sidebar-border bg-gradient-to-r from-accent/20 to-accent/5 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-sidebar-border"
+                class="relative overflow-hidden rounded-xl border-2 border-sidebar-border/70 dark:border-sidebar-border shadow-lg transition-all duration-300 hover:shadow-xl hover:border-sidebar-border"
+                :style="getCoverPhotoUrl() ? {
+                    backgroundImage: `url('${getCoverPhotoUrl()}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                } : {}"
                 @mouseenter="profileHovered = true"
                 @mouseleave="profileHovered = false"
             >
-                <!-- Cover Photo Section -->
-                <div v-if="getCoverPhotoUrl()" class="relative h-48 overflow-hidden">
-                    <img :src="getCoverPhotoUrl()" alt="Cover Photo" class="w-full h-full object-cover" />
-                    <button @click="openCoverPhotoUpload"
-                        class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white px-3 py-2 rounded-lg text-sm transition-colors">
-                        📸 Change Cover
-                    </button>
-                </div>
-                <div v-else class="relative h-48 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-                    <div @click="openCoverPhotoUpload"
-                        class="absolute inset-0 w-full h-full flex items-center justify-center group cursor-pointer">
-                        <div class="text-center transition-transform group-hover:scale-110">
-                            <div class="text-4xl mb-2">📸</div>
-                            <div class="text-purple-300 group-hover:text-purple-200 font-medium">Add Cover Photo
-                            </div>
-                            <div class="text-xs text-purple-300/60 mt-1">Click to upload</div>
-                        </div>
+                <!-- Cover Photo Overlay -->
+                <div v-if="!getCoverPhotoUrl()" class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-0" />
+                <div v-if="getCoverPhotoUrl()" class="absolute inset-0 bg-black/40 z-0" />
+
+                <!-- Change Cover Button
+                <button v-if="getCoverPhotoUrl()" @click="openCoverPhotoUpload"
+                    class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white px-3 py-2 rounded-lg text-sm transition-colors z-20">
+                    📸 Change Cover
+                </button> -->
+
+                <!-- Add Cover Photo Placeholder -->
+                <div v-if="!getCoverPhotoUrl()" @click="openCoverPhotoUpload"
+                    class="absolute inset-0 w-full h-full flex items-center justify-center group cursor-pointer z-10">
+                    <div class="text-center transition-transform group-hover:scale-110">
+                        <div class="text-4xl mb-2">📸</div>
+                        <div class="text-purple-300 group-hover:text-purple-200 font-medium">Add Cover Photo</div>
+                        <div class="text-xs text-purple-300/60 mt-1">Click to upload</div>
                     </div>
                 </div>
 
                 <!-- Animated background -->
-                <div class="absolute inset-0 opacity-10">
+                <div class="absolute inset-0 opacity-10 z-5">
                     <div
                         class="absolute -right-1/2 -top-1/2 h-full w-full rounded-full bg-gradient-to-br from-accent to-transparent blur-3xl transition-transform duration-500"
                         :class="{ 'scale-110': profileHovered }"
@@ -255,7 +223,7 @@ const getCoverPhotoUrl = () => {
                 </div>
 
                 <!-- Particle effects -->
-                <div v-for="particle in particles" :key="particle.id" class="absolute pointer-events-none">
+                <div v-for="particle in particles" :key="particle.id" class="absolute pointer-events-none z-15">
                     <div
                         class="text-2xl"
                         :style="{
@@ -268,30 +236,40 @@ const getCoverPhotoUrl = () => {
                     </div>
                 </div>
 
-                <div class="relative z-10 flex items-start justify-between p-8" :class="{ 'pt-16': getCoverPhotoUrl() }">
+                <div class="relative z-20 flex items-start justify-between p-8 min-h-80">
                     <div class="flex items-center gap-6">
                         <!-- Avatar with glow -->
                         <div
-                            class="h-24 w-24 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-4xl font-bold text-accent-foreground shadow-lg relative transition-all duration-300"
+                            class="h-24 w-24 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-4xl font-bold text-accent-foreground shadow-lg relative transition-all duration-300 overflow-hidden group cursor-pointer"
                             :class="{ 'scale-110 shadow-xl': profileHovered }"
+                            @click="handleEditClick"
                         >
-                            {{ user.name.charAt(0).toUpperCase() }}
+                            <img 
+                                v-if="user.profile_photo_path"
+                                :src="`/storage/${user.profile_photo_path}`"
+                                alt="Profile Photo"
+                                class="w-full h-full object-cover"
+                            />
+                            <span v-else>{{ user.name.charAt(0).toUpperCase() }}</span>
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="text-white text-lg">📸</span>
+                            </div>
                         </div>
 
                         <!-- User Info -->
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-2">
-                                <h1 class="text-4xl font-bold text-foreground">
+                                <h1 class="text-4xl font-bold text-white drop-shadow-lg">
                                     {{ user.name }}
                                 </h1>
-                                <span class="text-3xl">👑</span>
+                                <span class="text-3xl drop-shadow-lg">👑</span>
                             </div>
-                            <p class="text-muted-foreground mb-2">{{ user.email }}</p>
-                            <p class="text-sm text-muted-foreground">
+                            <p class="text-white/90 mb-2 drop-shadow-md">{{ user.email }}</p>
+                            <p class="text-sm text-white/85 drop-shadow-md">
                                 🎮 Player since {{ user.joinedDate }}
                             </p>
-                            <div class="mt-3 pt-3 border-t border-sidebar-border/70 dark:border-sidebar-border">
-                                <p class="text-foreground font-semibold">Level {{ props.stats.level }} Champion</p>
+                            <div class="mt-3 pt-3 border-t border-white/30">
+                                <p class="text-white font-semibold drop-shadow-md">Level {{ props.stats.level }} Champion</p>
                             </div>
                         </div>
                     </div>
@@ -303,11 +281,11 @@ const getCoverPhotoUrl = () => {
                         ✏️ Edit Profile
                     </Button>
                 </div>
+            </div>
 
-                <!-- Bio Section -->
-                <div v-if="user.bio" class="mt-6 p-4 rounded-lg bg-accent/10 border border-accent/20">
-                    <p class="text-sm text-foreground">{{ user.bio }}</p>
-                </div>
+            <!-- Bio Section -->
+            <div v-if="user.bio" class="rounded-lg border-2 border-sidebar-border/70 dark:border-sidebar-border bg-card p-6">
+                <p class="text-foreground">{{ user.bio }}</p>
             </div>
 
             <!-- XP Progress Bar -->
@@ -505,88 +483,7 @@ const getCoverPhotoUrl = () => {
             </DialogContent>
         </Dialog>
 
-        <!-- Edit Profile Dialog -->
-        <Dialog :open="isEditingProfile" @update:open="isEditingProfile = $event">
-            <DialogContent class="border-sidebar-border/70 dark:border-sidebar-border">
-                <DialogHeader>
-                    <DialogTitle class="text-foreground">✏️ Edit Profile</DialogTitle>
-                    <DialogDescription>
-                        Update your profile information
-                    </DialogDescription>
-                </DialogHeader>
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-sm font-semibold text-foreground">Name</label>
-                        <input
-                            v-model="editedProfile.name"
-                            type="text"
-                            class="w-full px-4 py-2 border-2 rounded-lg border-sidebar-border/70 dark:border-sidebar-border bg-card text-foreground mt-2 transition-all duration-200 focus:border-sidebar-border focus:ring-2 focus:ring-accent/30"
-                            placeholder="Your name"
-                        />
-                    </div>
-                    <div>
-                        <label class="text-sm font-semibold text-foreground">Email</label>
-                        <input
-                            v-model="editedProfile.email"
-                            type="email"
-                            class="w-full px-4 py-2 border-2 rounded-lg border-sidebar-border/70 dark:border-sidebar-border bg-card text-foreground mt-2 transition-all duration-200 focus:border-sidebar-border focus:ring-2 focus:ring-accent/30"
-                            placeholder="Your email"
-                        />
-                    </div>
-                    <div>
-                        <label class="text-sm font-semibold text-foreground">Bio</label>
-                        <textarea
-                            v-model="editedProfile.bio"
-                            class="w-full px-4 py-2 border-2 rounded-lg border-sidebar-border/70 dark:border-sidebar-border bg-card text-foreground mt-2 transition-all duration-200 focus:border-sidebar-border focus:ring-2 focus:ring-accent/30"
-                            rows="4"
-                            placeholder="Tell us about yourself..."
-                        />
-                    </div>
-                    <!-- Cover Photo Upload -->
-                    <div>
-                        <label class="text-sm font-semibold text-foreground">📸 Cover Photo</label>
-                        <div @click="openCoverPhotoUpload"
-                            class="relative border-2 border-dashed border-sidebar-border/70 dark:border-sidebar-border rounded-lg p-6 cursor-pointer transition-all hover:border-sidebar-border hover:bg-accent/5 mt-2">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-foreground">
-                                        {{ coverPhotoFile ? coverPhotoFile.name : 'Click to select a cover photo' }}
-                                    </p>
-                                    <p class="text-xs text-muted-foreground mt-1">
-                                        PNG, JPG, GIF or WebP up to 5MB
-                                    </p>
-                                </div>
-                                <div class="text-2xl">📁</div>
-                            </div>
-                        </div>
-                        <div v-if="coverPhotoFile" class="flex items-center gap-2 mt-2">
-                            <button type="button" @click="removeCoverPhoto"
-                                class="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
-                                ✕ Remove photo
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 pt-4">
-                        <Button 
-                            @click="handleSaveProfile" 
-                            class="flex-1"
-                        >
-                            💾 Save Changes
-                        </Button>
-                        <Button 
-                            @click="isEditingProfile = false" 
-                            variant="outline" 
-                            class="flex-1"
-                        >
-                            ✕ Cancel
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-        <!-- Hidden file input for cover photo upload -->
-        <input ref="coverPhotoInput" type="file" name="cover_photo"
-            accept="image/*" class="hidden" @change="handleCoverPhotoSelect" />
+
     </AppLayout>
 </template>
 
