@@ -27,7 +27,7 @@ class RewardsController extends Controller
              if ($isUnlocked && $pivot && $pivot->unlocked_at) {
                  $earnedAt = is_string($pivot->unlocked_at) ? $pivot->unlocked_at : $pivot->unlocked_at->format('M d, Y');
              }
-        
+         
              return [
                  'id' => $achievement->id,
                  'name' => $achievement->name,
@@ -68,6 +68,14 @@ class RewardsController extends Controller
         $totalXPFromRewards = $unlockedAchievements->sum('xp_reward');
         $nextMilestoneCount = $allAchievements->count();
         $progressPercentage = $nextMilestoneCount > 0 ? ceil(($totalBadges / $nextMilestoneCount) * 100) : 0;
+
+        // Save XP to user_profiles table
+        $userProfile = $user->profile;
+        if ($userProfile) {
+            $userProfile->update([
+                'total_xp' => $totalXPFromRewards,
+            ]);
+        }
 
         $stats = [
             'totalRewards' => $totalBadges,
