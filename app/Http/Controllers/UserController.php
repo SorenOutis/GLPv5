@@ -14,6 +14,7 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user();
+        $userStreak = $user->streak;
 
         return Inertia::render('User', [
             'isOwnProfile' => true,
@@ -33,7 +34,7 @@ class UserController extends Controller
                 'coursesEnrolled' => $user->enrollments()->count(),
                 'assignmentsCompleted' => $user->lessonCompletions()->count(),
                 'achievementsUnlocked' => $user->achievements()->count(),
-                'currentStreak' => optional($user->profile)->streak_days ?? 0,
+                'currentStreak' => $userStreak ? $userStreak->current_streak : 0,
                 'rank' => optional($user->profile)->rank ?? 0,
                 'rankTitle' => optional($user->profile)->rank_title ?? 'Novice',
             ],
@@ -102,6 +103,8 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        $userStreak = $user->streak;
+
         return Inertia::render('User', [
             'isOwnProfile' => $user->id === Auth::id(),
             'user' => [
@@ -120,7 +123,7 @@ class UserController extends Controller
                 'coursesEnrolled' => $user->enrollments()->count(),
                 'assignmentsCompleted' => $user->lessonCompletions()->count(),
                 'achievementsUnlocked' => $user->achievements()->count(),
-                'currentStreak' => optional($user->profile)->streak_days ?? 0,
+                'currentStreak' => $userStreak ? $userStreak->current_streak : 0,
                 'rank' => optional($user->profile)->rank ?? 0,
                 'rankTitle' => optional($user->profile)->rank_title ?? 'Novice',
             ],
