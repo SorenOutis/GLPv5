@@ -19,6 +19,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Search } from 'lucide-vue-next';
+import axios from 'axios';
+import { watch } from 'vue';
 
 interface UserStats {
     totalXP: number;
@@ -125,6 +128,16 @@ const selectedLeaderboardEntry = ref<LeaderboardEntry | null>(null);
 const isLevelCardHovered = ref(false);
 const isTotalXPCardHovered = ref(false);
 const isAchievementsCardHovered = ref(false);
+const searchQuery = ref('');
+const searchResults = ref<any[]>([]);
+const isSearching = ref(false);
+
+interface SearchUser {
+    id: number;
+    name: string;
+    email: string;
+    profile_photo_path?: string;
+}
 
 const handleCourseClick = (course: Course) => {
     selectedCourse.value = course;
@@ -143,8 +156,38 @@ const handleLeaderboardClick = (leader: LeaderboardEntry) => {
 };
 
 const handleViewProfile = (userId: number) => {
+    searchQuery.value = '';
+    searchResults.value = [];
     router.visit(`/users/${userId}`);
 };
+
+const performSearch = async (query: string) => {
+    if (query.trim().length === 0) {
+        searchResults.value = [];
+        return;
+    }
+
+    isSearching.value = true;
+    try {
+        const response = await axios.get('/api/users/search', {
+            params: { query }
+        });
+        searchResults.value = response.data;
+    } catch (error) {
+        console.error('Search error:', error);
+        searchResults.value = [];
+    } finally {
+        isSearching.value = false;
+    }
+};
+
+watch(searchQuery, (newQuery) => {
+    if (newQuery.trim().length > 0) {
+        performSearch(newQuery);
+    } else {
+        searchResults.value = [];
+    }
+}, { debounce: 300 });
 </script>
 
 <template>
@@ -153,9 +196,63 @@ const handleViewProfile = (userId: number) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            <!-- Welcome Message -->
-            <div class="mb-2">
+            <!-- Welcome Message & Search -->
+            <div class="mb-2 space-y-4">
                 <h1 class="text-3xl font-bold">Welcome, {{ userName }}!</h1>
+                
+                <!-- Search Bar -->
+                <div class="relative max-w-md">
+                    <div class="relative">
+                        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <input 
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Search students..."
+                            class="w-full pl-10 pr-4 py-2 rounded-lg border border-sidebar-border/70 bg-background hover:border-sidebar-border focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+                        />
+                    </div>
+                    
+                    <!-- Search Results Dropdown -->
+                    <div v-if="searchQuery && (searchResults.length > 0 || isSearching)" class="absolute top-full left-0 right-0 mt-2 bg-background border border-sidebar-border/70 rounded-lg shadow-lg z-50">
+                        <!-- Loading State -->
+                        <div v-if="isSearching" class="p-4 text-center text-muted-foreground text-sm">
+                            Searching...
+                        </div>
+
+                        <!-- Results -->
+                        <div v-else-if="searchResults.length > 0" class="max-h-96 overflow-y-auto">
+                            <div 
+                                v-for="user in searchResults" 
+                                :key="user.id"
+                                @click="handleViewProfile(user.id)"
+                                class="flex items-center gap-3 p-3 border-b border-sidebar-border/30 last:border-b-0 hover:bg-accent/10 cursor-pointer transition-colors"
+                            >
+                                <!-- User Avatar -->
+                                <div v-if="user.profile_photo_path" class="h-10 w-10 rounded-full overflow-hidden flex-shrink-0">
+                                    <img 
+                                        :src="`/storage/${user.profile_photo_path}`"
+                                        :alt="user.name"
+                                        class="h-full w-full object-cover"
+                                    />
+                                </div>
+                                <div v-else class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                    {{ user.name.split(' ').map((n: string) => n[0]).join('') }}
+                                </div>
+
+                                <!-- User Info -->
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-sm truncate">{{ user.name }}</p>
+                                    <p class="text-xs text-muted-foreground truncate">{{ user.email }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- No Results -->
+                        <div v-else class="p-4 text-center text-muted-foreground text-sm">
+                            No students found
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Header Section with User Stats -->
