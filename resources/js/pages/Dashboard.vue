@@ -196,10 +196,66 @@ watch(searchQuery, (newQuery) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <!-- Hero Banner Section -->
+            <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-accent/20 via-accent/10 to-transparent border border-accent/30 p-6 mb-4 shadow-sm">
+                <!-- Decorative background elements -->
+                <div class="absolute -right-20 -top-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl"></div>
+                <div class="absolute -left-20 -bottom-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-start justify-between gap-6">
+                        <!-- User Info Section -->
+                        <div class="flex flex-col gap-2 flex-1">
+                            <h4 class="text-2xl font-bold text-foreground">Welcome, <span class="text-yellow-500 font-bold">{{ userName }}!</span></h4>
+                            <p class="text-sm text-muted-foreground">Keep up your amazing progress and reach new milestones</p>
+                            <div class="flex gap-2 mt-1">
+                                <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-accent/30 text-foreground font-medium">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                                    </svg>
+                                    Active Learner
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-yellow-500/30 text-foreground font-medium">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    Committed
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Level Badge -->
+                        <div class="flex flex-col items-center justify-center p-4 bg-background/50 backdrop-blur-sm rounded-lg border border-accent/30">
+                            <div class="text-xs text-muted-foreground mb-1">Current Level</div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-5xl font-bold text-yellow-500">{{ userStats.level }}</span>
+                                <svg class="h-8 w-8 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- XP Progress Bar -->
+                    <div class="mt-4 space-y-2">
+                        <div class="flex items-center justify-between text-xs text-muted-foreground">
+                            <span class="font-medium">Experience Progress</span>
+                            <span class="font-semibold text-foreground">{{ Math.round(progressPercentage) }}%</span>
+                        </div>
+                        <div class="relative h-2 bg-background/50 rounded-full overflow-hidden border border-accent/20">
+                            <div class="h-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 rounded-full transition-all duration-1000 ease-out"
+                                :style="{ width: `${progressPercentage}%` }" />
+                        </div>
+                        <div class="flex justify-between text-xs text-muted-foreground">
+                            <span>{{ userStats.currentXP.toLocaleString() }} XP</span>
+                            <span>{{ userStats.maxXPForLevel.toLocaleString() }} XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Welcome Message & Search -->
             <div class="mb-2 space-y-4">
-                <h1 class="text-3xl font-bold">Welcome, {{ userName }}!</h1>
-                
                 <!-- Search Bar -->
                 <div class="relative max-w-md">
                     <div class="relative">
