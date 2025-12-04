@@ -52,14 +52,11 @@ class AssignmentSubmissionObserver
             ->whereNotNull('xp')
             ->sum('xp');
 
-        // Take the maximum: either assignment XP or current profile XP (to preserve manually awarded points)
-        $newTotalXP = max($assignmentXP, $profile->total_xp);
-
-        // Update profile with new total XP and recalculate level
+        // Update profile with total XP from assignments and recalculate level
         $profile->update([
-            'total_xp' => $newTotalXP,
-            'level' => max(1, intval($newTotalXP / 100) + 1),
-            'current_level_xp' => $newTotalXP % 100,
+            'total_xp' => $assignmentXP,
+            'level' => max(1, intval($assignmentXP / 100) + 1),
+            'current_level_xp' => $assignmentXP % 100,
         ]);
     }
 }

@@ -81,11 +81,7 @@ class AssignmentController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Assignment submitted successfully!',
-            'submission' => $submission,
-        ]);
+        return redirect()->route('assignments')->with('success', 'Assignment submitted successfully!');
     }
 
     public function show($id)

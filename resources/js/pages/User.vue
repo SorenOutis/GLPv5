@@ -23,6 +23,7 @@ interface UserProfile {
     name: string;
     email: string;
     avatar?: string;
+    cover_photo_path?: string;
     bio?: string;
     joinedDate: string;
 }
@@ -79,10 +80,16 @@ const particles = ref<Array<{ id: number; x: number; y: number }>>([]);
 const particleCounter = ref(0);
 const levelProgressAnimated = ref(0);
 
+// Cover photo state
+const coverPhotoPreview = ref<string | null>(null);
+const coverPhotoFile = ref<File | null>(null);
+const coverPhotoInput = ref<HTMLInputElement | null>(null);
+
 const editedProfile = ref({
     name: props.user.name,
     email: props.user.email,
     bio: props.user.bio || '',
+    cover_photo: null as File | null,
 });
 
 // Animated stats
@@ -167,6 +174,45 @@ const getStreakEmoji = () => {
     if (streak < 30) return '🔥🔥';
     return '🔥🔥🔥';
 };
+
+const handleCoverPhotoSelect = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+        coverPhotoFile.value = file;
+        editedProfile.value.cover_photo = file;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            coverPhotoPreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const openCoverPhotoUpload = () => {
+    coverPhotoInput.value?.click();
+};
+
+const removeCoverPhoto = () => {
+    coverPhotoFile.value = null;
+    coverPhotoPreview.value = null;
+    editedProfile.value.cover_photo = null;
+    if (coverPhotoInput.value) {
+        coverPhotoInput.value.value = '';
+    }
+};
+
+const getCoverPhotoUrl = () => {
+    if (coverPhotoPreview.value) {
+        return coverPhotoPreview.value;
+    }
+    if (props.user.cover_photo_path) {
+        return `/storage/${props.user.cover_photo_path}`;
+    }
+    return null;
+};
 </script>
 
 <template>
@@ -175,11 +221,31 @@ const getStreakEmoji = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
             <!-- User Header Section - Game Style -->
-            <div 
-                class="relative overflow-hidden rounded-xl border-2 border-sidebar-border/70 dark:border-sidebar-border bg-gradient-to-r from-accent/20 to-accent/5 p-8 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-sidebar-border"
+            <div
+                class="relative overflow-hidden rounded-xl border-2 border-sidebar-border/70 dark:border-sidebar-border bg-gradient-to-r from-accent/20 to-accent/5 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-sidebar-border"
                 @mouseenter="profileHovered = true"
                 @mouseleave="profileHovered = false"
             >
+                <!-- Cover Photo Section -->
+                <div v-if="getCoverPhotoUrl()" class="relative h-48 overflow-hidden">
+                    <img :src="getCoverPhotoUrl()" alt="Cover Photo" class="w-full h-full object-cover" />
+                    <button @click="openCoverPhotoUpload"
+                        class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white px-3 py-2 rounded-lg text-sm transition-colors">
+                        📸 Change Cover
+                    </button>
+                </div>
+                <div v-else class="relative h-48 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                    <div @click="openCoverPhotoUpload"
+                        class="absolute inset-0 w-full h-full flex items-center justify-center group cursor-pointer">
+                        <div class="text-center transition-transform group-hover:scale-110">
+                            <div class="text-4xl mb-2">📸</div>
+                            <div class="text-purple-300 group-hover:text-purple-200 font-medium">Add Cover Photo
+                            </div>
+                            <div class="text-xs text-purple-300/60 mt-1">Click to upload</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Animated background -->
                 <div class="absolute inset-0 opacity-10">
                     <div
@@ -202,10 +268,10 @@ const getStreakEmoji = () => {
                     </div>
                 </div>
 
-                <div class="relative z-10 flex items-start justify-between">
+                <div class="relative z-10 flex items-start justify-between p-8" :class="{ 'pt-16': getCoverPhotoUrl() }">
                     <div class="flex items-center gap-6">
                         <!-- Avatar with glow -->
-                        <div 
+                        <div
                             class="h-24 w-24 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-4xl font-bold text-accent-foreground shadow-lg relative transition-all duration-300"
                             :class="{ 'scale-110 shadow-xl': profileHovered }"
                         >
@@ -476,6 +542,30 @@ const getStreakEmoji = () => {
                             placeholder="Tell us about yourself..."
                         />
                     </div>
+                    <!-- Cover Photo Upload -->
+                    <div>
+                        <label class="text-sm font-semibold text-foreground">📸 Cover Photo</label>
+                        <div @click="openCoverPhotoUpload"
+                            class="relative border-2 border-dashed border-sidebar-border/70 dark:border-sidebar-border rounded-lg p-6 cursor-pointer transition-all hover:border-sidebar-border hover:bg-accent/5 mt-2">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-foreground">
+                                        {{ coverPhotoFile ? coverPhotoFile.name : 'Click to select a cover photo' }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground mt-1">
+                                        PNG, JPG, GIF or WebP up to 5MB
+                                    </p>
+                                </div>
+                                <div class="text-2xl">📁</div>
+                            </div>
+                        </div>
+                        <div v-if="coverPhotoFile" class="flex items-center gap-2 mt-2">
+                            <button type="button" @click="removeCoverPhoto"
+                                class="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+                                ✕ Remove photo
+                            </button>
+                        </div>
+                    </div>
                     <div class="flex gap-3 pt-4">
                         <Button 
                             @click="handleSaveProfile" 
@@ -494,6 +584,9 @@ const getStreakEmoji = () => {
                 </div>
             </DialogContent>
         </Dialog>
+        <!-- Hidden file input for cover photo upload -->
+        <input ref="coverPhotoInput" type="file" name="cover_photo"
+            accept="image/*" class="hidden" @change="handleCoverPhotoSelect" />
     </AppLayout>
 </template>
 

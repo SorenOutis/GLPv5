@@ -127,33 +127,34 @@ const handleFileSelect = (event: Event) => {
 
 const submitAssignment = () => {
      if (!currentUploadAssignment.value || !uploadForm.file) {
-         alert('Please select a file');
-         return;
+          alert('Please select a file');
+          return;
      }
 
      isUploading.value = true;
      uploadProgress.value = 0;
 
      const assignmentId = currentUploadAssignment.value.id;
+     const assignmentTitle = currentUploadAssignment.value.title;
 
      uploadForm.post(`/assignments/${assignmentId}/upload`, {
-         onSuccess: () => {
-             uploadProgress.value = 100;
-             setTimeout(() => {
-                 successMessage.value = `${currentUploadAssignment.value?.title} has been successfully submitted!`;
-                 showSuccessModal.value = true;
-                 closeUploadDialog();
-                 setTimeout(() => {
-                     router.reload();
-                 }, 2000);
-             }, 500);
-         },
-         onError: (errors: any) => {
-             console.error('Upload error:', errors);
-             isUploading.value = false;
-             uploadProgress.value = 0;
-             alert('Failed to upload assignment. Please try again.');
-         },
+          onSuccess: () => {
+              uploadProgress.value = 100;
+              setTimeout(() => {
+                  successMessage.value = 'Successfully uploaded';
+                  showSuccessModal.value = true;
+                  closeUploadDialog();
+                  setTimeout(() => {
+                      router.reload();
+                  }, 2000);
+              }, 500);
+          },
+          onError: (errors: any) => {
+              console.error('Upload error:', errors);
+              isUploading.value = false;
+              uploadProgress.value = 0;
+              alert('Failed to upload assignment. Please try again.');
+          },
      });
 };
 </script>

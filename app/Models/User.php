@@ -23,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'cover_photo_path',
     ];
 
     public function profile()
