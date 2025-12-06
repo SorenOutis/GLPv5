@@ -8,35 +8,34 @@ import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useLogo } from '@/composables/useLogo';
+import { useAppearance } from '@/composables/useAppearance';
 
-const isDarkMode = ref(false);
 const mouseX = ref(0);
 const mouseY = ref(0);
 const { hasLogo, logo, getLightLogo, getDarkLogo } = useLogo();
+const { appearance, updateAppearance } = useAppearance();
+
+const isDarkMode = computed(() => {
+    if (appearance.value === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return appearance.value === 'dark';
+});
 
 const toggleTheme = () => {
-    isDarkMode.value = !isDarkMode.value;
     if (isDarkMode.value) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
+        updateAppearance('light');
     } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
+        updateAppearance('dark');
     }
 };
 
 onMounted(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        isDarkMode.value = true;
-        document.documentElement.classList.add('dark');
-    } else {
-        isDarkMode.value = false;
-        document.documentElement.classList.remove('dark');
+    const savedAppearance = localStorage.getItem('appearance');
+    if (savedAppearance) {
+        updateAppearance(savedAppearance as 'light' | 'dark' | 'system');
     }
 
     document.addEventListener('mousemove', (e) => {

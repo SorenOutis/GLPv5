@@ -10,13 +10,26 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useLogo } from '@/composables/useLogo';
+import { useAppearance } from '@/composables/useAppearance';
 
-const isDarkMode = ref(false);
+interface ModalState {
+    isOpen: boolean;
+    title: string;
+    message: string;
+}
+
 const mouseX = ref(0);
 const mouseY = ref(0);
 const { hasLogo, logo, getLightLogo, getDarkLogo } = useLogo();
+const { appearance, updateAppearance } = useAppearance();
+const isLoggingIn = ref(false);
+const modal = ref<ModalState>({
+    isOpen: false,
+    title: 'Logging in...',
+    message: 'Please wait while we authenticate your account'
+});
 
 defineProps<{
     status?: string;
@@ -24,27 +37,25 @@ defineProps<{
     canRegister: boolean;
 }>();
 
+const isDarkMode = computed(() => {
+    if (appearance.value === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return appearance.value === 'dark';
+});
+
 const toggleTheme = () => {
-    isDarkMode.value = !isDarkMode.value;
     if (isDarkMode.value) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
+        updateAppearance('light');
     } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
+        updateAppearance('dark');
     }
 };
 
 onMounted(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        isDarkMode.value = true;
-        document.documentElement.classList.add('dark');
-    } else {
-        isDarkMode.value = false;
-        document.documentElement.classList.remove('dark');
+    const savedAppearance = localStorage.getItem('appearance');
+    if (savedAppearance) {
+        updateAppearance(savedAppearance as 'light' | 'dark' | 'system');
     }
 
     document.addEventListener('mousemove', (e) => {
@@ -159,8 +170,49 @@ onMounted(() => {
             </nav>
         </header>
 
+        <!-- Loading Modal Overlay -->
+        <div
+            v-if="modal.isOpen"
+            class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+        >
+            <!-- Modal -->
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div
+                    class="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl p-8 animate-scale-in"
+                >
+                    <!-- Spinner -->
+                    <div class="flex justify-center mb-6">
+                        <div class="relative w-16 h-16">
+                            <div class="absolute inset-0 rounded-full border-4 border-border/30" />
+                            <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-primary border-r-primary animate-spin" />
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="text-center space-y-3">
+                        <h2 class="text-2xl font-bold text-foreground">
+                            {{ modal.title }}
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            {{ modal.message }}
+                        </p>
+                    </div>
+
+                    <!-- Loading dots animation -->
+                    <div class="flex justify-center gap-1.5 mt-6">
+                        <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0s" />
+                        <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0.2s" />
+                        <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0.4s" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
-        <div class="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center p-6 md:p-10">
+        <div
+            class="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center p-6 md:p-10"
+            :class="{ 'blur-sm pointer-events-none': modal.isOpen }"
+        >
             <div class="w-full max-w-sm">
                 <!-- Status Message -->
                 <div
@@ -194,6 +246,7 @@ onMounted(() => {
                     <Form
                         v-bind="store.form()"
                         :reset-on-success="['password']"
+                        @submit="isLoggingIn = true; modal.isOpen = true;"
                         v-slot="{ errors, processing }"
                         class="flex flex-col gap-6"
                     >
@@ -334,7 +387,22 @@ onMounted(() => {
     }
 }
 
+@keyframes scale-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .animate-blob {
     animation: blob 7s infinite;
+}
+
+.animate-scale-in {
+    animation: scale-in 0.3s ease-out;
 }
 </style>
