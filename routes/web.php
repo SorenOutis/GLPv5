@@ -67,8 +67,12 @@ Route::post('assignments/{assignment}/upload', [\App\Http\Controllers\Assignment
     ->name('assignment.upload');
 
 // API Routes
-Route::prefix('api')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('users/search', [\App\Http\Controllers\Api\UserSearchController::class, 'search']);
+Route::prefix('api')->group(function () {
+    Route::get('logo', [\App\Http\Controllers\LogoController::class, 'getActive']);
+    
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::get('users/search', [\App\Http\Controllers\Api\UserSearchController::class, 'search']);
+    });
 });
 
 require __DIR__.'/settings.php';
