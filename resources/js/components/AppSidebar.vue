@@ -15,7 +15,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, FileText, User, Zap, Trophy, Star, Gift, MessageSquare, TrendingUp, Target } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, FileText, User, Zap, Trophy, Star, Gift, MessageSquare, TrendingUp, Target, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage();
@@ -58,9 +58,9 @@ const mainNavItems: NavItem[] = [
         icon: Gift,
     },
     {
-        title: 'Messages',
-        href: '/messages',
-        icon: MessageSquare,
+        title: 'Community',
+        href: '/community',
+        icon: Users,
     },
     {
         title: 'Assignments',

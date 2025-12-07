@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\Streak::class);
     }
 
+    public function communityPosts()
+    {
+        return $this->hasMany(\App\Models\CommunityPost::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

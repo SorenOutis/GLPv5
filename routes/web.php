@@ -50,9 +50,29 @@ Route::get('rewards', [\App\Http\Controllers\RewardsController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('rewards');
 
-Route::get('messages', [\App\Http\Controllers\MessagesController::class, 'index'])
+Route::get('community', [\App\Http\Controllers\CommunityController::class, 'index'])
     ->middleware(['auth', 'verified'])
-    ->name('messages');
+    ->name('community');
+
+Route::get('community/{post}', [\App\Http\Controllers\CommunityController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('community.show');
+
+Route::post('community', [\App\Http\Controllers\CommunityController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('community.store');
+
+Route::put('community/{post}', [\App\Http\Controllers\CommunityController::class, 'update'])
+    ->middleware(['auth', 'verified'])
+    ->name('community.update');
+
+Route::delete('community/{post}', [\App\Http\Controllers\CommunityController::class, 'destroy'])
+    ->middleware(['auth', 'verified'])
+    ->name('community.destroy');
+
+Route::post('community/{post}/react', [\App\Http\Controllers\CommunityController::class, 'react'])
+    ->middleware(['auth', 'verified'])
+    ->name('community.react');
 
 Route::get('assignments', [\App\Http\Controllers\AssignmentController::class, 'index'])
     ->middleware(['auth', 'verified'])
