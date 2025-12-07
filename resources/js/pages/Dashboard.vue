@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Search } from 'lucide-vue-next';
 import axios from 'axios';
-import { watch } from 'vue';
+import { watch, onMounted } from 'vue';
 
 interface UserStats {
     totalXP: number;
@@ -64,8 +64,11 @@ interface Achievement {
 interface Activity {
     type: string;
     title: string;
-    xp: number;
+    description?: string;
+    content?: string;
+    xp?: number;
     timestamp: string;
+    id?: number;
 }
 
 interface Assignment {
@@ -104,6 +107,26 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard().url,
     },
 ];
+
+const announcements = ref<Activity[]>([]);
+const isLoadingAnnouncements = ref(false);
+
+const fetchAnnouncements = async () => {
+    isLoadingAnnouncements.value = true;
+    try {
+        const response = await axios.get('/api/announcements/latest');
+        announcements.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch announcements:', error);
+    } finally {
+        isLoadingAnnouncements.value = false;
+    }
+};
+
+// Fetch announcements on component mount
+onMounted(() => {
+    fetchAnnouncements();
+});
 
 const progressPercentage = computed(() => {
     return (props.userStats.currentXP / props.userStats.maxXPForLevel) * 100;
@@ -538,33 +561,30 @@ watch(searchQuery, (newQuery) => {
                         </CardContent>
                     </Card>
 
-                    <!-- Recent Activity -->
+                    <!-- Announcements -->
                     <Card
                         class="border-sidebar-border/70 dark:border-sidebar-border transition-all duration-200 hover:border-sidebar-border hover:shadow-md dark:hover:shadow-lg">
                         <CardHeader>
-                            <CardTitle>Recent Activity</CardTitle>
-                            <CardDescription>Your latest achievements and progress</CardDescription>
+                            <CardTitle>Announcements</CardTitle>
+                            <CardDescription>Latest news and updates from admin</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div v-if="recentActivity.length === 0" class="text-center py-8">
-                                <p class="text-muted-foreground">No recent activity yet. Start learning to see your
-                                    progress here!</p>
+                            <div v-if="isLoadingAnnouncements" class="text-center py-8">
+                                <p class="text-muted-foreground">Loading announcements...</p>
+                            </div>
+                            <div v-else-if="announcements.length === 0" class="text-center py-8">
+                                <p class="text-muted-foreground">No announcements yet</p>
                             </div>
                             <div v-else class="space-y-3">
-                                <div v-for="(activity, index) in recentActivity" :key="index"
+                                <div v-for="announcement in announcements" :key="announcement.id"
                                     class="flex items-start gap-3 pb-3 border-b last:border-b-0 p-2 rounded cursor-pointer transition-all duration-150 hover:bg-accent/10">
                                     <div class="mt-1 text-lg">
-                                        <span v-if="activity.type === 'lesson'">📚</span>
-                                        <span v-else-if="activity.type === 'quiz'">✅</span>
-                                        <span v-else-if="activity.type === 'achievement'">⭐</span>
-                                        <span v-else>🚀</span>
+                                        <span>📢</span>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-medium">{{ activity.title }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ activity.timestamp }}</p>
-                                    </div>
-                                    <div v-if="activity.xp > 0" class="text-right">
-                                        <p class="text-sm font-semibold text-yellow-500">+{{ activity.xp }} XP</p>
+                                        <p class="text-sm font-medium">{{ announcement.title }}</p>
+                                        <p v-if="announcement.description" class="text-xs text-muted-foreground line-clamp-2">{{ announcement.description }}</p>
+                                        <p class="text-xs text-muted-foreground mt-1">{{ announcement.timestamp }}</p>
                                     </div>
                                 </div>
                             </div>

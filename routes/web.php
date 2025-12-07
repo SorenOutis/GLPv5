@@ -72,6 +72,7 @@ Route::prefix('api')->group(function () {
     
     Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('users/search', [\App\Http\Controllers\Api\UserSearchController::class, 'search']);
+        Route::get('announcements/latest', [\App\Http\Controllers\AnnouncementController::class, 'getLatest']);
     });
 });
 
