@@ -454,6 +454,8 @@ const getCoverPhotoUrl = () => {
                                 </p>
                             </div>
                             <Button 
+                                v-if="isOwnProfile"
+                                @click="handleEditClick"
                                 class="w-full mt-4"
                                 variant="outline" 
                                 size="sm"
