@@ -10,6 +10,14 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('terms-of-service', function () {
+    return Inertia::render('auth/TermsOfService');
+})->name('terms');
+
+Route::get('privacy-policy', function () {
+    return Inertia::render('auth/PrivacyPolicy');
+})->name('privacy');
+
 Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

@@ -358,7 +358,7 @@ onMounted(() => {
                 <div
                     class="pt-8 border-t border-gray-200/50 dark:border-gray-800/50 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p class="text-gray-700 dark:text-gray-400 text-sm">
-                        © 2024 LevelUp Academy. All rights reserved.
+                        © 2025 LevelUp Academy. All rights reserved.
                     </p>
                     <div class="flex gap-6">
                         <a href="#"

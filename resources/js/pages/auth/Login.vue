@@ -350,24 +350,24 @@ onMounted(() => {
                         </div>
 
                         <!-- Additional Info -->
-                        <div class="mt-8 text-center text-xs text-muted-foreground">
-                        <p>
-                         By logging in, you agree to our
-                         <a
-                             href="#"
-                             class="text-primary hover:underline"
-                         >
-                             Terms of Service
-                         </a>
-                         and
-                         <a
-                             href="#"
-                             class="text-primary hover:underline"
-                         >
-                             Privacy Policy
-                         </a>
-                        </p>
-                        </div>
+                         <div class="mt-8 text-center text-xs text-muted-foreground">
+                         <p>
+                          By logging in, you agree to our
+                          <Link
+                              href="/terms-of-service"
+                              class="text-primary hover:underline"
+                          >
+                              Terms of Service
+                          </Link>
+                          and
+                          <Link
+                              href="/privacy-policy"
+                              class="text-primary hover:underline"
+                          >
+                              Privacy Policy
+                          </Link>
+                         </p>
+                         </div>
             </div>
         </div>
     </div>
