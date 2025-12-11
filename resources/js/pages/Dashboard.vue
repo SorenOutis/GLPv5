@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { Search } from 'lucide-vue-next';
 import axios from 'axios';
-import { watch, onMounted } from 'vue';
+import { watch, onMounted, onUnmounted, ref as vueRef } from 'vue';
 
 interface UserStats {
     totalXP: number;
@@ -118,6 +118,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 const announcements = ref<Activity[]>([]);
 const isLoadingAnnouncements = ref(false);
 const isDailyBonusModalOpen = ref(false);
+const refreshIntervals = vueRef<NodeJS.Timeout[]>([]);
+const autoRefreshEnabled = ref(true);
+const refreshInterval = 30000; // 30 seconds
 
 const fetchAnnouncements = async () => {
     isLoadingAnnouncements.value = true;
@@ -131,21 +134,95 @@ const fetchAnnouncements = async () => {
     }
 };
 
+const fetchDashboardData = async () => {
+    try {
+        const response = await axios.get('/api/dashboard/stats');
+        // Update user stats
+        if (response.data.userStats) {
+            Object.assign(props.userStats, response.data.userStats);
+        }
+        // Update courses
+        if (response.data.courses) {
+            Object.assign(props, { courses: response.data.courses });
+        }
+        // Update assignments
+        if (response.data.assignments) {
+            Object.assign(props, { assignments: response.data.assignments });
+        }
+        // Update leaderboard
+        if (response.data.leaderboard) {
+            Object.assign(props, { leaderboard: response.data.leaderboard });
+        }
+    } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+    }
+};
+
 const handleBonusClaimed = (result: any) => {
     // Update user stats with new XP
     if (result.total_xp !== undefined) {
-        // You can emit an event or update local state here if needed
         console.log('Bonus claimed! New total XP:', result.total_xp);
+        // Refresh dashboard data after bonus claimed
+        fetchDashboardData();
+    }
+};
+
+const startAutoRefresh = () => {
+    if (!autoRefreshEnabled.value) return;
+    
+    // Fetch announcements every 30 seconds
+    const announcementsInterval = setInterval(() => {
+        if (autoRefreshEnabled.value) {
+            fetchAnnouncements();
+        }
+    }, refreshInterval);
+    
+    // Fetch dashboard stats every 30 seconds
+    const dashboardInterval = setInterval(() => {
+        if (autoRefreshEnabled.value) {
+            fetchDashboardData();
+        }
+    }, refreshInterval);
+    
+    refreshIntervals.value = [announcementsInterval, dashboardInterval];
+};
+
+const stopAutoRefresh = () => {
+    refreshIntervals.value.forEach(interval => clearInterval(interval));
+    refreshIntervals.value = [];
+};
+
+const handleVisibilityChange = () => {
+    if (document.hidden) {
+        stopAutoRefresh();
+    } else {
+        startAutoRefresh();
+        // Fetch fresh data when tab becomes visible
+        fetchAnnouncements();
+        fetchDashboardData();
     }
 };
 
 // Fetch announcements on component mount and show daily bonus modal
 onMounted(() => {
     fetchAnnouncements();
+    fetchDashboardData();
+    
     // Show daily bonus modal if user hasn't received it today
     if (props.dailyBonus && !props.dailyBonus.hasReceivedToday) {
         isDailyBonusModalOpen.value = true;
     }
+    
+    // Start auto-refresh
+    startAutoRefresh();
+    
+    // Listen for visibility changes (pause refresh when tab is hidden)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+    stopAutoRefresh();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
 const progressPercentage = computed(() => {

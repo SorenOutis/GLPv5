@@ -101,6 +101,7 @@ Route::prefix('api')->group(function () {
     Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('users/search', [\App\Http\Controllers\Api\UserSearchController::class, 'search']);
         Route::get('announcements/latest', [\App\Http\Controllers\AnnouncementController::class, 'getLatest']);
+        Route::get('dashboard/stats', [\App\Http\Controllers\DashboardController::class, 'getStats']);
         Route::post('daily-bonus/claim', [\App\Http\Controllers\Api\DailyBonusController::class, 'claim']);
     });
 });

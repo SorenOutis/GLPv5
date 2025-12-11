@@ -166,6 +166,105 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function getStats()
+    {
+        $user = auth()->user();
+
+        // Get or create user profile
+        $profile = $user->profile()->firstOrCreate([], [
+            'total_xp' => 0,
+            'level' => 1,
+            'current_level_xp' => 0,
+            'xp_for_next_level' => 1000,
+            'streak_days' => 0,
+            'rank_title' => 'Plastic',
+        ]);
+
+        $totalXP = $profile->total_xp;
+        $level = $profile->level;
+        $currentLevelXP = $profile->current_level_xp;
+
+        // Get active courses with enrollment progress
+        $courses = $user->enrollments()
+            ->with('course')
+            ->get()
+            ->map(fn ($enrollment) => [
+                'id' => $enrollment->course->id,
+                'name' => $enrollment->course->title,
+                'progress' => $enrollment->progress_percentage,
+                'completedLessons' => $enrollment->completed_lessons_count,
+                'totalLessons' => $enrollment->course->total_lessons,
+                'xpEarned' => $enrollment->xp_earned,
+                'nextDeadline' => $enrollment->course->updated_at->format('Y-m-d'),
+            ]);
+
+        // Get leaderboard (top 5 users by total XP from database)
+        $leaderboard = \App\Models\User::with('profile')
+            ->where('id', '>', 1) // Exclude first user (admin)
+            ->get()
+            ->filter(function ($u) {
+                // Also exclude users with admin-related roles
+                return !$u->hasAnyRole(['admin', 'staff', 'teacher', 'super_admin']);
+            })
+            ->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'xp' => $u->profile?->total_xp ?? 0,
+                'level' => $u->profile?->level ?? 1,
+                'isUser' => $u->id === $user->id,
+            ])
+            ->map(fn ($item) => [
+                'id' => $item['id'],
+                'name' => $item['name'],
+                'xp' => $item['xp'],
+                'level' => $item['level'],
+                'badge' => $this->getLevelBadge($item['level']),
+                'isUser' => $item['isUser'],
+            ])
+            ->sortByDesc('xp')
+            ->take(5)
+            ->values()
+            ->map(fn ($item, $index) => array_merge($item, ['rank' => $index + 1]));
+
+        // Get pending assignments (not submitted or not graded)
+        $assignments = \App\Models\Assignment::where('is_active', true)
+            ->with('submissions')
+            ->get()
+            ->map(function ($assignment) use ($user) {
+                $userSubmission = $assignment->submissions()
+                    ->where('user_id', $user->id)
+                    ->first();
+
+                return [
+                    'id' => $assignment->id,
+                    'title' => $assignment->title,
+                    'description' => $assignment->description,
+                    'dueDate' => $assignment->due_date?->format('Y-m-d'),
+                    'isOverdue' => $assignment->due_date && $assignment->due_date->isPast(),
+                    'submitted' => $userSubmission ? true : false,
+                    'status' => $userSubmission?->status ?? 'pending',
+                    'grade' => $userSubmission?->grade,
+                ];
+            })
+            ->sortBy(fn ($a) => $a['isOverdue'] ? 0 : 1)
+            ->values();
+
+        return response()->json([
+            'userStats' => [
+                'totalXP' => $totalXP,
+                'level' => $level,
+                'currentXP' => $currentLevelXP,
+                'maxXPForLevel' => 100,
+                'rank' => $profile->rank_title,
+                'streakDays' => $profile->streak_days,
+                'achievements' => $user->achievements()->count(),
+            ],
+            'courses' => $courses,
+            'assignments' => $assignments,
+            'leaderboard' => $leaderboard,
+        ]);
+    }
+
     private function getLevelBadge(int $level): string
     {
         return match (true) {
