@@ -67,11 +67,11 @@ const mainNavItems: NavItem[] = [
         href: '/assignments',
         icon: FileText,
     },
-    {
-        title: 'Profile',
-        href: '/profile',
-        icon: User,
-    },
+    // {
+    //     title: 'Profile',
+    //     href: '/profile',
+    //     icon: User,
+    // },
 ];
 
 // const footerNavItems: NavItem[] = [
@@ -100,7 +100,7 @@ const mainNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem class="mt-4 px-2">
-                    <div class="flex flex-col items-center gap-3 px-2 py-4 rounded-lg border border-sidebar-border">
+                    <Link href="/profile" class="flex flex-col items-center gap-3 px-2 py-4 rounded-lg border border-sidebar-border hover:bg-sidebar-accent transition-colors cursor-pointer">
                         <div class="flex-shrink-0 h-16 w-16 rounded-full overflow-hidden">
                             <img 
                                 v-if="user.profile_photo_path"
@@ -115,7 +115,7 @@ const mainNavItems: NavItem[] = [
                         <div class="text-center">
                             <p class="font-semibold text-sm truncate">{{ user.name }}</p>
                         </div>
-                    </div>
+                    </Link>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>

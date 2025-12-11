@@ -38,6 +38,18 @@ const breadcrumbItems: BreadcrumbItem[] = [
 const page = usePage();
 const user = page.props.auth.user;
 
+// System theme detection
+const isDarkMode = ref(window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+onMounted(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e: MediaQueryListEvent) => {
+        isDarkMode.value = e.matches;
+    };
+    mediaQuery.addEventListener('change', handleThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleThemeChange);
+});
+
 // Cover photo state
 const coverPhotoPreview = ref<string | null>(null);
 const coverPhotoFile = ref<File | null>(null);
@@ -220,8 +232,12 @@ const onFormSubmit = (form: any) => {
         <SettingsLayout>
             <div class="space-y-8">
                 <!-- Game Profile Card -->
-                <div class="relative overflow-hidden rounded-lg border-2 border-purple-500 shadow-2xl transition-all duration-300 hover:border-purple-400 hover:shadow-lg"
-                    style="border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 20px rgba(168, 85, 247, 0.1);"
+                <div class="relative overflow-hidden rounded-lg border-2 shadow-2xl transition-all duration-300 hover:shadow-lg"
+                    :class="isDarkMode ? 'border-purple-500 hover:border-purple-400' : 'border-gray-300 hover:border-gray-400'"
+                    :style="{ 
+                        borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.5)' : 'rgba(209, 213, 219, 0.5)',
+                        boxShadow: isDarkMode ? '0 0 20px rgba(168, 85, 247, 0.1)' : '0 0 20px rgba(0, 0, 0, 0.05)'
+                    }"
                     @mouseenter="profileHovered = true" @mouseleave="profileHovered = false">
                     <!-- Cover Photo Section -->
                     <div v-if="getCoverPhotoUrl()" class="relative h-48 overflow-hidden">
@@ -231,21 +247,36 @@ const onFormSubmit = (form: any) => {
                             📸 Change Cover
                         </button> -->
                     </div>
-                    <div v-else class="relative h-48 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                    <div v-else :class="[
+                        'relative h-48 bg-gradient-to-br',
+                        isDarkMode
+                            ? 'from-slate-900 via-slate-800 to-slate-900'
+                            : 'from-slate-200 via-slate-100 to-slate-200'
+                    ]">
                         <button @click="openCoverPhotoUpload"
                             class="absolute inset-0 w-full h-full flex items-center justify-center group">
                             <div class="text-center transition-transform group-hover:scale-110">
                                 <div class="text-4xl mb-2">📸</div>
-                                <div class="text-purple-300 group-hover:text-purple-200 font-medium">Add Cover Photo
+                                <div :class="[
+                                    'font-medium',
+                                    isDarkMode ? 'text-purple-300 group-hover:text-purple-200' : 'text-purple-600 group-hover:text-purple-500'
+                                ]">Add Cover Photo
                                 </div>
-                                <div class="text-xs text-purple-300/60 mt-1">Click to upload</div>
+                                <div :class="[
+                                    'text-xs mt-1',
+                                    isDarkMode ? 'text-purple-300/60' : 'text-purple-600/60'
+                                ]">Click to upload</div>
                             </div>
                         </button>
                     </div>
 
                     <!-- Content Section -->
-                    <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8"
-                        style="background-color: rgba(15, 23, 42, 0.8);">
+                    <div :class="[
+                        'relative bg-gradient-to-br p-8',
+                        isDarkMode
+                            ? 'from-slate-900 via-slate-800 to-slate-900'
+                            : 'from-slate-100 via-white to-slate-100'
+                    ]" :style="{ backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.8)' : 'rgba(241, 245, 249, 0.8)' }">
                         <!-- Animated background -->
                         <div class="absolute inset-0" style="opacity: 0.2;">
                             <div class="absolute -right-1/2 -top-1/2 h-full w-full rounded-full bg-gradient-to-br from-purple-600 to-transparent blur-3xl transition-transform duration-500"
@@ -268,27 +299,29 @@ const onFormSubmit = (form: any) => {
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-4">
                                     <!-- Profile Photo Avatar -->
-                                    <div
-                                        class="h-20 w-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white shadow-lg relative overflow-hidden group cursor-pointer"
-                                        @click="openProfilePhotoUpload"
-                                    >
-                                        <img 
-                                            v-if="getProfilePhotoUrl()"
-                                            :src="getProfilePhotoUrl()"
-                                            alt="Profile Photo"
-                                            class="w-full h-full object-cover"
-                                        />
+                                    <div class="h-20 w-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white shadow-lg relative overflow-hidden group cursor-pointer"
+                                        @click="openProfilePhotoUpload">
+                                        <img v-if="getProfilePhotoUrl()" :src="getProfilePhotoUrl()" alt="Profile Photo"
+                                            class="w-full h-full object-cover" />
                                         <span v-else>{{ getGamerTag() }}</span>
-                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div
+                                            class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <span class="text-white text-lg">📸</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <h1
-                                            class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400">
+                                        <h1 :class="[
+                                            'text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r',
+                                            isDarkMode
+                                                ? 'from-purple-400 via-pink-400 to-purple-400'
+                                                : 'from-purple-600 via-pink-600 to-purple-600'
+                                        ]">
                                             {{ user.name }}
                                         </h1>
-                                        <p class="text-sm text-purple-300/70">
+                                        <p :class="[
+                                            'text-sm',
+                                            isDarkMode ? 'text-purple-300/70' : 'text-purple-600/70'
+                                        ]">
                                             Level {{ profileLevel }} Player
                                         </p>
                                     </div>
@@ -298,12 +331,21 @@ const onFormSubmit = (form: any) => {
                             <!-- XP Progress Bar -->
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-purple-300">Experience Points</span>
-                                    <span class="text-sm text-purple-400">{{ user.xp || 0 }} / {{ nextLevelXp }}
+                                    <span :class="[
+                                        'text-sm font-semibold',
+                                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                    ]">Experience Points</span>
+                                    <span :class="[
+                                        'text-sm',
+                                        isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                                    ]">{{ user.xp || 0 }} / {{ nextLevelXp }}
                                         XP</span>
                                 </div>
-                                <div class="relative h-4 w-full overflow-hidden rounded-full bg-slate-700 border border-purple-500"
-                                    style="border-color: rgba(168, 85, 247, 0.3);">
+                                <div :class="[
+                                    'relative h-4 w-full overflow-hidden rounded-full border border-purple-500',
+                                    isDarkMode ? 'bg-slate-700' : 'bg-slate-300'
+                                ]"
+                                    :style="{ borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.3)' : 'rgba(168, 85, 247, 0.5)' }">
                                     <div class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-300 rounded-full shadow-lg"
                                         :style="{ width: levelProgress + '%', boxShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }" />
                                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"
@@ -313,15 +355,25 @@ const onFormSubmit = (form: any) => {
 
                             <!-- Stats Grid -->
                             <div class="grid grid-cols-3 gap-4">
-                                <button v-for="(stat, index) in stats" :key="index" @click="createParticle"
-                                    class="group relative overflow-hidden rounded-lg bg-slate-700 border border-purple-500 p-4 text-center transition-all duration-300 hover:border-purple-400 cursor-pointer hover:scale-105"
-                                    style="background-color: rgba(51, 65, 85, 0.5); border-color: rgba(168, 85, 247, 0.3);">
+                                <button v-for="(stat, index) in stats" :key="index" @click="createParticle" :class="[
+                                    'group relative overflow-hidden rounded-lg border border-purple-500 p-4 text-center transition-all duration-300 hover:border-purple-400 cursor-pointer hover:scale-105',
+                                    isDarkMode ? 'bg-slate-700' : 'bg-slate-200'
+                                ]" :style="{
+                                        backgroundColor: isDarkMode ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.5)',
+                                        borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.3)' : 'rgba(168, 85, 247, 0.5)'
+                                    }">
                                     <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 transition-opacity duration-300 group-hover:opacity-20"
                                         style="opacity: 0;" />
                                     <div class="relative z-10">
                                         <div class="mb-2 text-3xl">{{ stat.icon }}</div>
-                                        <div class="text-2xl font-bold text-purple-300">{{ stat.value }}</div>
-                                        <div class="text-xs text-purple-300/60 mt-1">{{ stat.label }}</div>
+                                        <div :class="[
+                                            'text-2xl font-bold',
+                                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                        ]">{{ stat.value }}</div>
+                                        <div :class="[
+                                            'text-xs mt-1',
+                                            isDarkMode ? 'text-purple-300/60' : 'text-purple-600/60'
+                                        ]">{{ stat.label }}</div>
                                     </div>
                                 </button>
                             </div>
@@ -330,148 +382,183 @@ const onFormSubmit = (form: any) => {
                 </div>
 
                 <!-- Settings Section -->
-                <div class="space-y-6">
-                        <HeadingSmall title="Profile Information" description="Update your name and email address" />
+                <div class="space-y-6" :class="isDarkMode ? '' : 'text-slate-900'">
+                    <HeadingSmall title="Profile Information" description="Update your name and email address" />
 
-                        <Form v-bind="ProfileController.update.form()" class="space-y-6"
-                            v-slot="{ form, errors, processing, recentlySuccessful }" multipart
-                            @submit="onFormSubmit(form)">
-                            <div class="grid gap-4 md:grid-cols-2">
-                                <div class="grid gap-2">
-                                    <Label for="name" class="flex items-center gap-2">
-                                        <span>👤 Name</span>
-                                    </Label>
-                                    <Input id="name"
-                                        class="mt-1 block w-full border-purple-500 focus:border-purple-500 focus:ring-purple-500"
-                                        style="border-color: rgba(168, 85, 247, 0.2);" name="name"
-                                        :default-value="user.name" required autocomplete="name"
-                                        placeholder="Full name" />
-                                    <InputError class="mt-2" :message="errors.name" />
-                                </div>
-
-                                <div class="grid gap-2">
-                                    <Label for="email" class="flex items-center gap-2">
-                                        <span>📧 Email address</span>
-                                    </Label>
-                                    <Input id="email" type="email"
-                                        class="mt-1 block w-full border-purple-500 focus:border-purple-500 focus:ring-purple-500"
-                                        style="border-color: rgba(168, 85, 247, 0.2);" name="email"
-                                        :default-value="user.email" required autocomplete="username"
-                                        placeholder="Email address" />
-                                    <InputError class="mt-2" :message="errors.email" />
-                                </div>
-                            </div>
-
-                            <!-- Cover Photo Upload -->
+                    <Form v-bind="ProfileController.update.form()" class="space-y-6"
+                        v-slot="{ form, errors, processing, recentlySuccessful }" multipart
+                        @submit="onFormSubmit(form)">
+                        <div class="grid gap-4 md:grid-cols-2">
                             <div class="grid gap-2">
-                                <Label for="cover-photo" class="flex items-center gap-2">
-                                    <span>📸 Cover Photo</span>
+                                <Label for="name" class="flex items-center gap-2"
+                                    :class="isDarkMode ? '' : 'text-slate-900'">
+                                    <span>👤 Name</span>
                                 </Label>
-                                <input ref="coverPhotoInput" type="file" id="cover-photo" name="cover_photo"
-                                    accept="image/*" class="hidden" @change="handleCoverPhotoSelect" />
-                                <div @click="openCoverPhotoUpload"
-                                    class="relative border-2 border-dashed border-purple-500 rounded-lg p-6 cursor-pointer transition-all hover:border-purple-400 hover:bg-purple-500/5"
-                                    style="border-color: rgba(168, 85, 247, 0.3);">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-sm font-medium text-purple-300">
-                                                {{ coverPhotoFile ? coverPhotoFile.name : 'Click to select a cover photo' }}
-                                            </p>
-                                            <p class="text-xs text-purple-300/60 mt-1">
-                                                PNG, JPG, GIF or WebP up to 5MB
-                                            </p>
-                                        </div>
-                                        <div class="text-2xl">📁</div>
-                                    </div>
-                                </div>
-                                <InputError class="mt-2" :message="errors.cover_photo" />
-                                <div v-if="coverPhotoFile" class="flex items-center gap-2 mt-2">
-                                    <button type="button" @click="removeCoverPhoto"
-                                        class="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
-                                        ✕ Remove photo
-                                    </button>
-                                </div>
+                                <Input id="name" :class="[
+                                    'mt-1 block w-full border-purple-500 focus:border-purple-500 focus:ring-purple-500',
+                                    isDarkMode ? '' : 'bg-white text-slate-900'
+                                ]"
+                                    :style="{ borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.2)' : 'rgba(168, 85, 247, 0.3)' }"
+                                    name="name" :default-value="user.name" required autocomplete="name"
+                                    placeholder="Full name" />
+                                <InputError class="mt-2" :message="errors.name" />
                             </div>
 
-                            <!-- Profile Photo Upload -->
                             <div class="grid gap-2">
-                                <Label for="profile-photo" class="flex items-center gap-2">
-                                    <span>👤 Profile Photo</span>
+                                <Label for="email" class="flex items-center gap-2"
+                                    :class="isDarkMode ? '' : 'text-slate-900'">
+                                    <span>📧 Email address</span>
                                 </Label>
-                                <input ref="profilePhotoInput" type="file" id="profile-photo" name="profile_photo"
-                                    accept="image/*" class="hidden" @change="handleProfilePhotoSelect" />
-                                <div @click="openProfilePhotoUpload"
-                                    class="relative border-2 border-dashed border-purple-500 rounded-lg p-6 cursor-pointer transition-all hover:border-purple-400 hover:bg-purple-500/5"
-                                    style="border-color: rgba(168, 85, 247, 0.3);">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-sm font-medium text-purple-300">
-                                                {{ profilePhotoFile ? profilePhotoFile.name : 'Click to select a profile photo' }}
-                                            </p>
-                                            <p class="text-xs text-purple-300/60 mt-1">
-                                                PNG, JPG, GIF or WebP up to 5MB
-                                            </p>
-                                        </div>
-                                        <div class="text-2xl">👤</div>
+                                <Input id="email" type="email" :class="[
+                                    'mt-1 block w-full border-purple-500 focus:border-purple-500 focus:ring-purple-500',
+                                    isDarkMode ? '' : 'bg-white text-slate-900'
+                                ]"
+                                    :style="{ borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.2)' : 'rgba(168, 85, 247, 0.3)' }"
+                                    name="email" :default-value="user.email" required autocomplete="username"
+                                    placeholder="Email address" />
+                                <InputError class="mt-2" :message="errors.email" />
+                            </div>
+                        </div>
+
+                        <!-- Cover Photo Upload -->
+                        <div class="grid gap-2">
+                            <Label for="cover-photo" class="flex items-center gap-2"
+                                :class="isDarkMode ? '' : 'text-slate-900'">
+                                <span>📸 Cover Photo</span>
+                            </Label>
+                            <input ref="coverPhotoInput" type="file" id="cover-photo" name="cover_photo"
+                                accept="image/*" class="hidden" @change="handleCoverPhotoSelect" />
+                            <div @click="openCoverPhotoUpload" :class="[
+                                'relative border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all',
+                                isDarkMode ? 'border-purple-500 hover:border-purple-400 hover:bg-purple-500/5' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                            ]"
+                                :style="{ borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.3)' : 'rgba(107, 114, 128, 0.3)' }">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p :class="[
+                                            'text-sm font-medium',
+                                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                        ]">
+                                            {{ coverPhotoFile ? coverPhotoFile.name : 'Click to select a cover photo' }}
+                                        </p>
+                                        <p :class="[
+                                            'text-xs mt-1',
+                                            isDarkMode ? 'text-purple-300/60' : 'text-purple-600/60'
+                                        ]">
+                                            PNG, JPG, GIF or WebP up to 5MB
+                                        </p>
                                     </div>
-                                </div>
-                                <InputError class="mt-2" :message="errors.profile_photo" />
-                                <div v-if="profilePhotoFile" class="flex items-center gap-2 mt-2">
-                                    <button type="button" @click="removeProfilePhoto"
-                                        class="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
-                                        ✕ Remove photo
-                                    </button>
+                                    <div class="text-2xl">📁</div>
                                 </div>
                             </div>
+                            <InputError class="mt-2" :message="errors.cover_photo" />
+                            <div v-if="coverPhotoFile" class="flex items-center gap-2 mt-2">
+                                <button type="button" @click="removeCoverPhoto"
+                                    :class="isDarkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-500'"
+                                    class="text-xs transition-colors flex items-center gap-1">
+                                    ✕ Remove photo
+                                </button>
+                            </div>
+                        </div>
 
-                            <div v-if="mustVerifyEmail && !user.email_verified_at">
-                                <div class="rounded-lg bg-yellow-500 border border-yellow-500 p-4"
-                                    style="background-color: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3);">
-                                    <p class="text-sm text-yellow-200">
-                                        ⚠️ Your email address is unverified.
-                                        <Link :href="send()" as="button"
-                                            class="font-semibold text-yellow-300 underline decoration-yellow-400 underline-offset-2 hover:text-yellow-100 transition-colors">
+                        <!-- Profile Photo Upload -->
+                        <div class="grid gap-2">
+                            <Label for="profile-photo" class="flex items-center gap-2"
+                                :class="isDarkMode ? '' : 'text-slate-900'">
+                                <span>👤 Profile Photo</span>
+                            </Label>
+                            <input ref="profilePhotoInput" type="file" id="profile-photo" name="profile_photo"
+                                accept="image/*" class="hidden" @change="handleProfilePhotoSelect" />
+                            <div @click="openProfilePhotoUpload" :class="[
+                                'relative border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all',
+                                isDarkMode ? 'border-purple-500 hover:border-purple-400 hover:bg-purple-500/5' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                            ]"
+                                :style="{ borderColor: isDarkMode ? 'rgba(168, 85, 247, 0.3)' : 'rgba(107, 114, 128, 0.3)' }">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p :class="[
+                                            'text-sm font-medium',
+                                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                        ]">
+                                            {{ profilePhotoFile ? profilePhotoFile.name : 'Click to select a profile photo' }}
+                                        </p>
+                                        <p :class="[
+                                            'text-xs mt-1',
+                                            isDarkMode ? 'text-purple-300/60' : 'text-purple-600/60'
+                                        ]">
+                                            PNG, JPG, GIF or WebP up to 5MB
+                                        </p>
+                                    </div>
+                                    <div class="text-2xl">👤</div>
+                                </div>
+                            </div>
+                            <InputError class="mt-2" :message="errors.profile_photo" />
+                            <div v-if="profilePhotoFile" class="flex items-center gap-2 mt-2">
+                                <button type="button" @click="removeProfilePhoto"
+                                    :class="isDarkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-500'"
+                                    class="text-xs transition-colors flex items-center gap-1">
+                                    ✕ Remove photo
+                                </button>
+                            </div>
+                        </div>
+
+                        <div v-if="mustVerifyEmail && !user.email_verified_at">
+                            <div class="rounded-lg border p-4"
+                                :class="isDarkMode ? 'bg-yellow-500 border-yellow-500' : 'bg-yellow-50 border-yellow-300'"
+                                :style="{ backgroundColor: isDarkMode ? 'rgba(234, 179, 8, 0.1)' : 'rgba(254, 243, 199, 0.5)', borderColor: isDarkMode ? 'rgba(234, 179, 8, 0.3)' : 'rgba(202, 138, 4, 0.3)' }">
+                                <p :class="['text-sm', isDarkMode ? 'text-yellow-200' : 'text-yellow-800']">
+                                    ⚠️ Your email address is unverified.
+                                    <Link :href="send()" as="button"
+                                        :class="['font-semibold underline underline-offset-2 transition-colors', isDarkMode ? 'text-yellow-300 decoration-yellow-400 hover:text-yellow-100' : 'text-yellow-700 decoration-yellow-600 hover:text-yellow-600']">
                                         Click here to resend the verification email.
-                                        </Link>
-                                    </p>
+                                    </Link>
+                                </p>
 
-                                    <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
-                                        leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
-                                        <div v-if="status === 'verification-link-sent'"
-                                            class="mt-3 rounded bg-green-500 border border-green-500 p-3 text-sm font-medium text-green-300"
-                                            style="background-color: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.3);">
-                                            ✅ A new verification link has been sent to your email address.
-                                        </div>
-                                    </Transition>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-4 pt-4">
-                                <Button :disabled="processing" @click="triggerConfetti"
-                                    data-test="update-profile-button"
-                                    class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg"
-                                    style="box-shadow: 0 10px 15px rgba(168, 85, 247, 0.3);">
-                                    <span v-if="!processing">💾 Save Changes</span>
-                                    <span v-else>⏳ Saving...</span>
-                                </Button>
-
-                                <Transition enter-active-class="transition ease-in-out"
-                                    enter-from-class="opacity-0 scale-95" leave-active-class="transition ease-in-out"
-                                    leave-to-class="opacity-0 scale-95">
-                                    <div v-show="recentlySuccessful"
-                                        class="flex items-center gap-2 text-sm font-medium text-green-400">
-                                        ✅ Saved successfully!
+                                <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
+                                    leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
+                                    <div v-if="status === 'verification-link-sent'"
+                                        class="mt-3 rounded border p-3 text-sm font-medium"
+                                        :class="isDarkMode ? 'bg-green-500 border-green-500 text-green-300' : 'bg-green-50 border-green-300 text-green-800'"
+                                        :style="{ backgroundColor: isDarkMode ? 'rgba(34, 197, 94, 0.2)' : 'rgba(220, 252, 231, 0.5)', borderColor: isDarkMode ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.3)' }">
+                                        ✅ A new verification link has been sent to your email address.
                                     </div>
                                 </Transition>
                             </div>
-                        </Form>
-                    </div>
+                        </div>
 
-                    <!-- Delete Account Section -->
-                    <div class="border-t border-purple-500/20 pt-8">
-                        <DeleteUser />
-                    </div>
+                        <div class="flex items-center gap-4 pt-4">
+                            <Button :disabled="processing" @click="triggerConfetti" data-test="update-profile-button"
+                                :class="[
+                                    'bg-gradient-to-r transition-all duration-300 shadow-lg font-semibold text-white',
+                                    isDarkMode 
+                                        ? 'from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
+                                        : 'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+                                ]"
+                                :style="{ boxShadow: isDarkMode ? '0 10px 15px rgba(168, 85, 247, 0.3)' : '0 10px 15px rgba(168, 85, 247, 0.2)' }">
+                                <span v-if="!processing">💾 Save Changes</span>
+                                <span v-else>⏳ Saving...</span>
+                            </Button>
+
+                            <Transition enter-active-class="transition ease-in-out"
+                                enter-from-class="opacity-0 scale-95" leave-active-class="transition ease-in-out"
+                                leave-to-class="opacity-0 scale-95">
+                                <div v-show="recentlySuccessful"
+                                    :class="['flex items-center gap-2 text-sm font-medium', isDarkMode ? 'text-green-400' : 'text-green-600']">
+                                    ✅ Saved successfully!
+                                </div>
+                            </Transition>
+                        </div>
+                    </Form>
                 </div>
+
+                <!-- Delete Account Section -->
+                <div :class="[
+                    'border-t pt-8',
+                    isDarkMode ? 'border-purple-500/20' : 'border-purple-300/30'
+                ]">
+                    <DeleteUser />
+                </div>
+            </div>
         </SettingsLayout>
     </AppLayout>
 </template>
@@ -494,11 +581,28 @@ const onFormSubmit = (form: any) => {
 }
 
 :deep(input) {
-    background-color: rgba(51, 65, 85, 0.5);
-    color: rgb(226, 232, 240);
+    color-scheme: v-bind("isDarkMode ? 'dark' : 'light'");
 }
 
-:deep(input::placeholder) {
-    color: rgb(148, 163, 184);
+@media (prefers-color-scheme: dark) {
+    :deep(input) {
+        background-color: rgba(51, 65, 85, 0.5);
+        color: rgb(226, 232, 240);
+    }
+
+    :deep(input::placeholder) {
+        color: rgb(148, 163, 184);
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :deep(input) {
+        background-color: rgb(255, 255, 255);
+        color: rgb(15, 23, 42);
+    }
+
+    :deep(input::placeholder) {
+        color: rgb(100, 116, 139);
+    }
 }
 </style>
