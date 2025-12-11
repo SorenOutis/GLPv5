@@ -11,13 +11,27 @@ import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
+import { inject, type Ref } from 'vue';
 
 interface Props {
     user: User;
 }
 
-const handleLogout = () => {
-    router.flushAll();
+interface ModalState {
+    isOpen: boolean;
+    title: string;
+    message: string;
+}
+
+const logoutModal = inject<Ref<ModalState>>('logoutModal');
+
+const handleLogout = (e: Event) => {
+    e.preventDefault();
+    if (logoutModal) {
+        logoutModal.value.isOpen = true;
+    }
+    // Modal shows while logout request is processing
+    router.post(logout());
 };
 
 defineProps<Props>();
@@ -40,15 +54,13 @@ defineProps<Props>();
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
-        <Link
-            class="block w-full"
-            :href="logout()"
+        <button
+            class="block w-full px-2 py-1.5 text-left text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md"
             @click="handleLogout"
-            as="button"
             data-test="logout-button"
         >
-            <LogOut class="mr-2 h-4 w-4" />
+            <LogOut class="mr-2 h-4 w-4 inline" />
             Log out
-        </Link>
+        </button>
     </DropdownMenuItem>
 </template>
