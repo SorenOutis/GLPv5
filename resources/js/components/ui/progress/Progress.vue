@@ -15,7 +15,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div :class="cn('relative h-2 w-full overflow-hidden rounded-full bg-primary/20', props.class)">
+  <div :class="cn('relative h-2 w-full overflow-hidden rounded-full bg-primary/20', $props.class)">
     <div
       :class="cn('h-full bg-primary transition-all')"
       :style="{ width: `${(value / max) * 100}%` }"
