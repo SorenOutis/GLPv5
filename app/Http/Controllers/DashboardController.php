@@ -28,6 +28,10 @@ class DashboardController extends Controller
             'last_login_at' => null,
         ]);
 
+        // Check if user has received daily bonus
+        $bonusService = new \App\Services\DailyLoginBonusService();
+        $hasReceivedBonus = $bonusService->hasReceivedBonusToday($user);
+
         // Get total XP from profile (includes both assignment XP and manually awarded points)
         $totalXP = $profile->total_xp;
         $level = $profile->level;
@@ -149,6 +153,10 @@ class DashboardController extends Controller
                 'currentStreak' => $streak->current_streak,
                 'longestStreak' => $streak->longest_streak,
                 'lastLoginDate' => $streak->last_login_date,
+            ],
+            'dailyBonus' => [
+                'hasReceivedToday' => $hasReceivedBonus,
+                'xpAmount' => 20,
             ],
             'courses' => $courses,
             'assignments' => $assignments,

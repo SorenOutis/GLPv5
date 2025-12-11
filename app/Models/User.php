@@ -71,6 +71,11 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\CommunityPost::class);
     }
 
+    public function dailyLoginBonuses()
+    {
+        return $this->hasMany(\App\Models\DailyLoginBonus::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -12,6 +12,7 @@ import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
 import StreakCard from '@/components/StreakCard.vue';
+import DailyBonusModal from '@/components/DailyBonusModal.vue';
 import {
     Dialog,
     DialogContent,
@@ -88,6 +89,11 @@ interface StreakData {
     lastLoginDate: string | null;
 }
 
+interface DailyBonusData {
+    hasReceivedToday: boolean;
+    xpAmount: number;
+}
+
 interface Props {
     userName: string;
     userStats: UserStats;
@@ -97,6 +103,7 @@ interface Props {
     achievements: Achievement[];
     recentActivity: Activity[];
     streak?: StreakData;
+    dailyBonus?: DailyBonusData;
 }
 
 const props = defineProps<Props>();
@@ -110,6 +117,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const announcements = ref<Activity[]>([]);
 const isLoadingAnnouncements = ref(false);
+const isDailyBonusModalOpen = ref(false);
 
 const fetchAnnouncements = async () => {
     isLoadingAnnouncements.value = true;
@@ -123,9 +131,21 @@ const fetchAnnouncements = async () => {
     }
 };
 
-// Fetch announcements on component mount
+const handleBonusClaimed = (result: any) => {
+    // Update user stats with new XP
+    if (result.total_xp !== undefined) {
+        // You can emit an event or update local state here if needed
+        console.log('Bonus claimed! New total XP:', result.total_xp);
+    }
+};
+
+// Fetch announcements on component mount and show daily bonus modal
 onMounted(() => {
     fetchAnnouncements();
+    // Show daily bonus modal if user hasn't received it today
+    if (props.dailyBonus && !props.dailyBonus.hasReceivedToday) {
+        isDailyBonusModalOpen.value = true;
+    }
 });
 
 const progressPercentage = computed(() => {
@@ -216,6 +236,15 @@ watch(searchQuery, (newQuery) => {
 <template>
 
     <Head title="Dashboard" />
+
+    <!-- Daily Bonus Modal -->
+    <DailyBonusModal 
+        :open="isDailyBonusModalOpen"
+        :has-received-today="props.dailyBonus?.hasReceivedToday ?? false"
+        :xp-amount="props.dailyBonus?.xpAmount ?? 20"
+        @update:open="isDailyBonusModalOpen = $event"
+        @bonus-claimed="handleBonusClaimed"
+    />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
