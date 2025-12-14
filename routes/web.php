@@ -103,6 +103,13 @@ Route::prefix('api')->group(function () {
         Route::get('announcements/latest', [\App\Http\Controllers\AnnouncementController::class, 'getLatest']);
         Route::get('dashboard/stats', [\App\Http\Controllers\DashboardController::class, 'getStats']);
         Route::post('daily-bonus/claim', [\App\Http\Controllers\Api\DailyBonusController::class, 'claim']);
+        
+        // Notification Routes
+        Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+        Route::delete('notifications/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+        Route::post('notifications/mark-all-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+        Route::get('notifications/stream', [\App\Http\Controllers\Api\NotificationStreamController::class, 'stream']);
     });
 });
 

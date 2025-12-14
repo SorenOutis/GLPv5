@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use App\Services\NotificationService;
 
 class AwardPointsResource extends Resource
 {
@@ -116,42 +117,51 @@ class AwardPointsResource extends Resource
                             ->maxLength(500),
                     ])
                     ->action(function (User $record, array $data): void {
-                        $pointsAmount = (int) $data['points_amount'];
-                        
-                        // Refresh the record to ensure we have latest data
-                        $record->refresh();
-                        
-                        // Get or create profile with user_id explicitly set
-                        $profile = $record->profile()->firstOrCreate([], [
-                            'total_xp' => 0,
-                            'level' => 1,
-                            'current_level_xp' => 0,
-                            'xp_for_next_level' => 1000,
-                            'streak_days' => 0,
-                            'rank_title' => 'Plastic',
-                        ]);
+                         $pointsAmount = (int) $data['points_amount'];
+                         
+                         // Refresh the record to ensure we have latest data
+                         $record->refresh();
+                         
+                         // Get or create profile with user_id explicitly set
+                         $profile = $record->profile()->firstOrCreate([], [
+                             'total_xp' => 0,
+                             'level' => 1,
+                             'current_level_xp' => 0,
+                             'xp_for_next_level' => 1000,
+                             'streak_days' => 0,
+                             'rank_title' => 'Plastic',
+                         ]);
 
-                        $newTotalXp = $profile->total_xp + $pointsAmount;
-                        $newLevel = max(1, intval($newTotalXp / 100) + 1);
-                        $newCurrentLevelXp = $newTotalXp % 100;
+                         $oldLevel = $profile->level;
+                         $newTotalXp = $profile->total_xp + $pointsAmount;
+                         $newLevel = max(1, intval($newTotalXp / 100) + 1);
+                         $newCurrentLevelXp = $newTotalXp % 100;
 
-                        // Update profile object in memory first to calculate correct rank title
-                        $profile->level = $newLevel;
-                        $newRankTitle = $profile->calculateRankTitle();
+                         // Update profile object in memory first to calculate correct rank title
+                         $profile->level = $newLevel;
+                         $newRankTitle = $profile->calculateRankTitle();
 
-                        $profile->update([
-                            'total_xp' => $newTotalXp,
-                            'level' => $newLevel,
-                            'current_level_xp' => $newCurrentLevelXp,
-                            'rank_title' => $newRankTitle,
-                        ]);
+                         $profile->update([
+                             'total_xp' => $newTotalXp,
+                             'level' => $newLevel,
+                             'current_level_xp' => $newCurrentLevelXp,
+                             'rank_title' => $newRankTitle,
+                         ]);
 
-                        Notification::make()
-                            ->title('Points Awarded Successfully')
-                            ->body("Awarded {$pointsAmount} XP to {$record->name} (Level {$newLevel})")
-                            ->success()
-                            ->send();
-                    }),
+                         // Send user notification for XP reward
+                         NotificationService::notifyXPGained($record, $pointsAmount, 'Admin Award');
+
+                         // Notify level up if level increased
+                         if ($newLevel > $oldLevel) {
+                             NotificationService::notifyLevelUp($record, $newLevel, $pointsAmount);
+                         }
+
+                         Notification::make()
+                             ->title('Points Awarded Successfully')
+                             ->body("Awarded {$pointsAmount} XP to {$record->name} (Level {$newLevel})")
+                             ->success()
+                             ->send();
+                     }),
                 Action::make('edit_xp')
                     ->label('Edit XP')
                     ->icon('heroicon-o-pencil')
@@ -167,44 +177,56 @@ class AwardPointsResource extends Resource
                             ->maxLength(500),
                     ])
                     ->action(function (User $record, array $data): void {
-                        $newTotalXp = (int) $data['profile']['total_xp'];
-                        
-                        // Refresh the record to ensure we have latest data
-                        $record->refresh();
-                        
-                        // Get or create profile
-                        $profile = $record->profile()->firstOrCreate([], [
-                            'total_xp' => 0,
-                            'level' => 1,
-                            'current_level_xp' => 0,
-                            'xp_for_next_level' => 1000,
-                            'streak_days' => 0,
-                            'rank_title' => 'Plastic',
-                        ]);
+                         $newTotalXp = (int) $data['profile']['total_xp'];
+                         
+                         // Refresh the record to ensure we have latest data
+                         $record->refresh();
+                         
+                         // Get or create profile
+                         $profile = $record->profile()->firstOrCreate([], [
+                             'total_xp' => 0,
+                             'level' => 1,
+                             'current_level_xp' => 0,
+                             'xp_for_next_level' => 1000,
+                             'streak_days' => 0,
+                             'rank_title' => 'Plastic',
+                         ]);
 
-                        // Calculate level and current level XP
-                        $newLevel = max(1, intval($newTotalXp / 100) + 1);
-                        $newCurrentLevelXp = $newTotalXp % 100;
+                         $oldLevel = $profile->level;
+                         // Calculate level and current level XP
+                         $newLevel = max(1, intval($newTotalXp / 100) + 1);
+                         $newCurrentLevelXp = $newTotalXp % 100;
 
-                        // Update profile object in memory first to calculate correct rank title
-                        $profile->level = $newLevel;
-                        $newRankTitle = $profile->calculateRankTitle();
+                         // Update profile object in memory first to calculate correct rank title
+                         $profile->level = $newLevel;
+                         $newRankTitle = $profile->calculateRankTitle();
 
-                        $profile->update([
-                            'total_xp' => $newTotalXp,
-                            'level' => $newLevel,
-                            'current_level_xp' => $newCurrentLevelXp,
-                            'rank_title' => $newRankTitle,
-                        ]);
+                         $profile->update([
+                             'total_xp' => $newTotalXp,
+                             'level' => $newLevel,
+                             'current_level_xp' => $newCurrentLevelXp,
+                             'rank_title' => $newRankTitle,
+                         ]);
 
-                        Notification::make()
-                            ->title('XP Updated Successfully')
-                            ->body("{$record->name} XP set to {$newTotalXp} (Level {$newLevel})")
-                            ->success()
-                            ->send();
-                    }),
-            ])
-            ->defaultSort('created_at', 'desc');
+                         // Calculate the difference and send notification if XP increased
+                         $xpDifference = $newTotalXp - $profile->getOriginal('total_xp');
+                         if ($xpDifference > 0) {
+                             NotificationService::notifyXPGained($record, $xpDifference, 'Admin Adjustment');
+
+                             // Notify level up if level increased
+                             if ($newLevel > $oldLevel) {
+                                 NotificationService::notifyLevelUp($record, $newLevel, $xpDifference);
+                             }
+                         }
+
+                         Notification::make()
+                             ->title('XP Updated Successfully')
+                             ->body("{$record->name} XP set to {$newTotalXp} (Level {$newLevel})")
+                             ->success()
+                             ->send();
+                     }),
+                        ])
+                        ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array

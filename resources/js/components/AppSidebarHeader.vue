@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import Button from '@/components/ui/button/Button.vue';
@@ -12,16 +12,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAppearance } from '@/composables/useAppearance';
+import { useNotifications } from '@/composables/useNotifications';
 import type { BreadcrumbItemType } from '@/types';
-
-interface Notification {
-    id: number;
-    title: string;
-    message: string;
-    timestamp: string;
-    read: boolean;
-    icon: string;
-}
 
 withDefaults(
     defineProps<{
@@ -33,35 +25,10 @@ withDefaults(
 );
 
 const { appearance, updateAppearance } = useAppearance();
+const { notifications, unreadCount, fetchNotifications, setupEventStream, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 const currentDateTime = ref<string>('');
 const userStatus = ref<string>('online');
 const isNotificationOpen = ref<boolean>(false);
-const notifications = ref<Notification[]>([
-    {
-        id: 1,
-        title: 'Assignment Due',
-        message: 'Your Math assignment is due tomorrow',
-        timestamp: '2 hours ago',
-        read: false,
-        icon: '📋',
-    },
-    {
-        id: 2,
-        title: 'Achievement Unlocked',
-        message: 'You unlocked the "Quick Learner" badge',
-        timestamp: '1 day ago',
-        read: true,
-        icon: '⭐',
-    },
-    {
-        id: 3,
-        title: 'Course Update',
-        message: 'New lesson available in Python Basics',
-        timestamp: '3 days ago',
-        read: true,
-        icon: '📚',
-    },
-]);
 
 const updateDateTime = () => {
     const now = new Date();
@@ -80,8 +47,17 @@ const updateDateTime = () => {
 
 onMounted(() => {
     updateDateTime();
-    const interval = setInterval(updateDateTime, 60000); // Update every minute
-    onUnmounted(() => clearInterval(interval));
+    const dateInterval = setInterval(updateDateTime, 60000); // Update every minute
+    
+    // Fetch initial notifications
+    fetchNotifications();
+    
+    // Setup real-time event stream for live notifications
+    setupEventStream();
+    
+    onUnmounted(() => {
+        clearInterval(dateInterval);
+    });
 });
 </script>
 
@@ -109,14 +85,14 @@ onMounted(() => {
 
             <div class="flex items-center gap-2 relative">
                 <!-- Notifications Button -->
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    title="Notifications"
-                    @click="isNotificationOpen = !isNotificationOpen"
-                    :class="{ 'bg-accent/10': isNotificationOpen }"
-                >
-                    <div class="relative">
+                <div class="relative inline-flex">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        title="Notifications"
+                        @click="isNotificationOpen = !isNotificationOpen"
+                        :class="{ 'bg-accent/10': isNotificationOpen }"
+                    >
                         <svg
                             class="h-5 w-5"
                             fill="none"
@@ -130,25 +106,40 @@ onMounted(() => {
                                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                             />
                         </svg>
-                        <!-- Unread badge -->
-                        <div v-if="notifications.some(n => !n.read)" class="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></div>
+                        <span class="sr-only">Notifications</span>
+                    </Button>
+                    <!-- Unread badge with count -->
+                    <div v-if="unreadCount > 0" class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold pointer-events-none">
+                        {{ unreadCount > 9 ? '9+' : unreadCount }}
                     </div>
-                    <span class="sr-only">Notifications</span>
-                </Button>
+                </div>
 
                 <!-- Notifications Dropdown -->
                 <div v-if="isNotificationOpen" class="absolute top-full right-0 mt-2 w-80 bg-card border border-sidebar-border/70 rounded-lg shadow-lg z-50">
                     <!-- Header -->
                     <div class="p-4 border-b border-sidebar-border/70 flex items-center justify-between">
-                        <h3 class="font-semibold text-sm">Notifications</h3>
-                        <button 
-                            @click="isNotificationOpen = false"
-                            class="text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                        <div>
+                            <h3 class="font-semibold text-sm">Notifications</h3>
+                            <p v-if="unreadCount > 0" class="text-xs text-muted-foreground">{{ unreadCount }} unread</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button 
+                                v-if="unreadCount > 0"
+                                @click="markAllAsRead"
+                                class="text-xs text-accent hover:underline transition-colors"
+                                title="Mark all as read"
+                            >
+                                Mark all read
+                            </button>
+                            <button 
+                                @click="isNotificationOpen = false"
+                                class="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Notifications List -->
@@ -159,14 +150,26 @@ onMounted(() => {
                         <div 
                             v-for="notification in notifications" 
                             :key="notification.id"
-                            :class="['p-3 border-b border-sidebar-border/30 last:border-b-0 hover:bg-accent/5 cursor-pointer transition-colors', notification.read ? '' : 'bg-accent/10']"
+                            :class="['p-3 border-b border-sidebar-border/30 last:border-b-0 hover:bg-accent/5 cursor-pointer transition-colors group', notification.read ? '' : 'bg-accent/10']"
+                            @click="markAsRead(notification.id)"
                         >
                             <div class="flex gap-3">
                                 <div class="text-xl flex-shrink-0">{{ notification.icon }}</div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-start justify-between gap-2">
                                         <p class="text-sm font-medium text-foreground">{{ notification.title }}</p>
-                                        <div v-if="!notification.read" class="h-2 w-2 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
+                                        <div class="flex items-center gap-2">
+                                            <div v-if="!notification.read" class="h-2 w-2 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
+                                            <button
+                                                @click.stop="deleteNotification(notification.id)"
+                                                class="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all"
+                                                title="Delete notification"
+                                            >
+                                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                     <p class="text-xs text-muted-foreground mt-1">{{ notification.message }}</p>
                                     <p class="text-xs text-muted-foreground mt-1">{{ notification.timestamp }}</p>
@@ -177,7 +180,7 @@ onMounted(() => {
 
                     <!-- Footer -->
                     <div class="p-3 border-t border-sidebar-border/70 text-center">
-                        <button class="text-xs text-accent hover:underline">View all notifications</button>
+                        <button class="text-xs text-accent hover:underline transition-colors">View all notifications</button>
                     </div>
                 </div>
 

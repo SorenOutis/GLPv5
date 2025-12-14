@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\DailyLoginBonus;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
 
 class DailyLoginBonusService
 {
@@ -63,9 +64,19 @@ class DailyLoginBonusService
                     'rank_title' => 'Plastic',
                 ]);
 
+                // Store old level before update
+                $oldLevel = $profile->level;
+
                 // Award XP
                 $profile->total_xp += self::DAILY_BONUS_XP;
                 $profile->current_level_xp += self::DAILY_BONUS_XP;
+
+                // Recalculate level
+                $newLevel = max(1, intval($profile->total_xp / 100) + 1);
+                if ($newLevel !== $oldLevel) {
+                    $profile->level = $newLevel;
+                    $profile->rank_title = $profile->calculateRankTitle();
+                }
 
                 // Record the bonus with today's date
                 DailyLoginBonus::create([
@@ -75,6 +86,14 @@ class DailyLoginBonusService
                 ]);
 
                 $profile->save();
+
+                // Send notification for XP gained
+                NotificationService::notifyXPGained($user, self::DAILY_BONUS_XP, 'Daily Login Bonus');
+
+                // Notify level up if level increased
+                if ($newLevel > $oldLevel) {
+                    NotificationService::notifyLevelUp($user, $newLevel, self::DAILY_BONUS_XP);
+                }
 
                 return [
                     'success' => true,

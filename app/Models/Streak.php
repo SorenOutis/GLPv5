@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use App\Services\NotificationService;
 
 class Streak extends Model
 {
@@ -75,6 +76,9 @@ class Streak extends Model
                         'last_login_date' => $today,
                         'last_login_at' => Carbon::now(),
                     ]);
+
+                    // Notify user about streak increase
+                    NotificationService::notifyStreakIncreased($user, $newStreak);
                 } else {
                     // Streak broken, reset to 1
                     $streak->update([

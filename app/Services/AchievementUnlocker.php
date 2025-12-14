@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Achievement;
+use App\Services\NotificationService;
 
 class AchievementUnlocker
 {
@@ -74,6 +75,9 @@ class AchievementUnlocker
             'rank_title' => 'Beginner',
         ]);
 
+        // Get old level before update
+        $oldLevel = $profile->level;
+
         // Add the XP reward
         $newTotalXP = $profile->total_xp + $achievement->xp_reward;
         $newLevel = max(1, intval($newTotalXP / 100) + 1);
@@ -89,6 +93,15 @@ class AchievementUnlocker
             'current_level_xp' => $newTotalXP % 100,
             'rank_title' => $newRankTitle,
         ]);
+
+        // Send notifications
+        NotificationService::notifyXPGained($user, $achievement->xp_reward, $achievement->name);
+        NotificationService::notifyAchievementUnlocked($user, $achievement);
+
+        // Notify level up if level increased
+        if ($newLevel > $oldLevel) {
+            NotificationService::notifyLevelUp($user, $newLevel, $achievement->xp_reward);
+        }
     }
 
     /**
