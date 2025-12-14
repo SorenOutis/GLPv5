@@ -3,6 +3,7 @@ import AppContent from '@/components/AppContent.vue';
 import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
+import AnimationContainer from '@/components/AnimationContainer.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { ref, provide } from 'vue';
 
@@ -74,6 +75,9 @@ withDefaults(defineProps<Props>(), {
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <slot />
         </AppContent>
+
+        <!-- Global animation container -->
+        <AnimationContainer />
     </AppShell>
 </template>
 

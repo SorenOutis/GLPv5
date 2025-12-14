@@ -110,6 +110,9 @@ Route::prefix('api')->group(function () {
         Route::delete('notifications/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy']);
         Route::post('notifications/mark-all-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
         Route::get('notifications/stream', [\App\Http\Controllers\Api\NotificationStreamController::class, 'stream']);
+        
+        // Streak Leaderboard Route
+        Route::get('streaks/leaderboard', [\App\Http\Controllers\Api\StreakLeaderboardController::class, 'index']);
     });
 });
 

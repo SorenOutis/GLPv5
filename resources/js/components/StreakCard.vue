@@ -5,6 +5,7 @@ import CardContent from '@/components/ui/card/CardContent.vue';
 import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
+import StreakLeaderboardModal from '@/components/StreakLeaderboardModal.vue';
 
 interface StreakData {
     currentStreak: number;
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const isStreakCardHovered = ref(false);
+const isLeaderboardModalOpen = ref(false);
 
 const currentStreak = computed(() => props.streak?.currentStreak ?? 0);
 const longestStreak = computed(() => props.streak?.longestStreak ?? 0);
@@ -51,9 +53,15 @@ const streakMessage = computed(() => {
 </script>
 
 <template>
+    <StreakLeaderboardModal 
+        :open="isLeaderboardModalOpen"
+        @update:open="isLeaderboardModalOpen = $event"
+    />
+    
     <Card :class="streakBgColor"
         class="border-sidebar-border/70 dark:border-sidebar-border transition-all duration-200 hover:border-sidebar-border hover:shadow-md dark:hover:shadow-lg cursor-pointer hover:scale-105 overflow-hidden"
-        @mouseenter="isStreakCardHovered = true" @mouseleave="isStreakCardHovered = false">
+        @mouseenter="isStreakCardHovered = true" @mouseleave="isStreakCardHovered = false"
+        @click="isLeaderboardModalOpen = true">
         <CardHeader class="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle class="text-sm font-medium flex items-center gap-2">
                 <span class="text-xl">🔥</span>

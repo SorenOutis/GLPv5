@@ -4,6 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Button from '@/components/ui/button/Button.vue';
 import axios from 'axios';
 import { CheckCircle2, X } from 'lucide-vue-next';
+import { useToast } from '@/composables/useToast';
 
 interface Props {
     open: boolean;
@@ -21,6 +22,8 @@ const emit = defineEmits<{
     'update:open': [value: boolean];
     'bonus-claimed': [result: any];
 }>();
+
+const { xp: addXPToast } = useToast();
 
 const isLoading = ref(false);
 const claimError = ref('');
@@ -45,6 +48,12 @@ const handleClaimBonus = async () => {
             claimSuccess.value = true;
             bonusData.value = response.data;
             emit('bonus-claimed', response.data);
+            
+            // Show toast notification with XP earned
+            addXPToast(
+                props.xpAmount,
+                'Daily Login Bonus'
+            );
             
             // Close modal after 2.5 seconds
             setTimeout(() => {

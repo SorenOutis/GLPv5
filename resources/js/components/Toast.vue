@@ -80,7 +80,7 @@ const getDuration = () => {
 </script>
 
 <template>
-    <div :class="toastClasses" :key="toast.id">
+    <div :class="toastClasses" :key="toast.id" class="relative">
         <!-- Icon/Avatar -->
         <div class="flex-shrink-0 mt-0.5">
             <div v-if="toast.type === 'achievement'" class="text-2xl">{{ toast.icon || '⭐' }}</div>
@@ -113,7 +113,7 @@ const getDuration = () => {
         </button>
 
         <!-- Progress Bar -->
-        <div v-if="toast.duration && toast.duration > 0" class="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r" :class="progressClasses" :style="{
+        <div v-if="toast.duration && toast.duration > 0" class="absolute bottom-0 left-0 right-0 h-1 rounded-b-lg" :class="progressClasses" :style="{
             animation: `shrink ${getDuration()}ms linear forwards`,
         }"></div>
     </div>
@@ -122,10 +122,12 @@ const getDuration = () => {
 <style scoped>
 @keyframes shrink {
     0% {
-        width: 100%;
+        transform: scaleX(1);
+        transform-origin: left;
     }
     100% {
-        width: 0%;
+        transform: scaleX(0);
+        transform-origin: left;
     }
 }
 

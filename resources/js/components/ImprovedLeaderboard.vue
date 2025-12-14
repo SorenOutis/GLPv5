@@ -31,7 +31,7 @@ const hoveredId = ref<number | null>(null);
 const animatedXP = ref<Record<number, number>>({});
 
 const topThree = computed(() => props.leaderboard.slice(0, 3));
-const restLeaderboard = computed(() => props.leaderboard.slice(3, 8));
+const restLeaderboard = computed(() => props.leaderboard.slice(3, 10));
 
 const getMedalIcon = (rank: number): string => {
     switch (rank) {
@@ -122,9 +122,9 @@ onMounted(() => {
             <CardTitle>Leaderboard</CardTitle>
             <CardDescription>Top learners this month</CardDescription>
         </CardHeader>
-        <CardContent class="space-y-6">
+        <CardContent class="space-y-6 flex flex-col">
             <!-- 3D Podium -->
-            <div v-if="topThree.length > 0" class="space-y-4">
+            <div v-if="topThree.length > 0" class="space-y-4 flex-shrink-0">
                 <!-- Podium Visualization -->
                 <div class="flex items-end justify-center gap-2 px-4 py-8 bg-gradient-to-b from-accent/5 to-accent/10 rounded-lg">
                     <!-- 2nd Place -->
@@ -226,41 +226,43 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- Rest of Leaderboard -->
-            <div v-if="restLeaderboard.length > 0" class="space-y-2 border-t pt-4">
-                <div
-                    v-for="leader in restLeaderboard"
-                    :key="leader.rank"
-                    @mouseenter="handleHover(leader.id)"
-                    @click="handleProfileClick(leader.id)"
-                    :class="[
-                        'flex items-center gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer',
-                        hoveredId === leader.id
-                            ? 'bg-accent/20 border border-accent shadow-md scale-102'
-                            : leader.isUser
-                            ? 'bg-accent/10 border border-accent/50'
-                            : 'bg-muted/50 border border-transparent hover:bg-accent/5 hover:border-accent/30'
-                    ]"
-                >
-                    <!-- Rank Badge -->
-                    <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold shadow-md">
-                        #{{ leader.rank }}
-                    </div>
+            <!-- Rest of Leaderboard - Scrollable -->
+            <div v-if="restLeaderboard.length > 0" class="flex-1 overflow-y-auto min-h-0 border-t pt-4 px-1">
+                <div class="space-y-2">
+                    <div
+                        v-for="leader in restLeaderboard"
+                        :key="leader.rank"
+                        @mouseenter="handleHover(leader.id)"
+                        @click="handleProfileClick(leader.id)"
+                        :class="[
+                            'flex items-center gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer relative',
+                            hoveredId === leader.id
+                                ? 'bg-accent/20 border border-accent shadow-lg z-10'
+                                : leader.isUser
+                                ? 'bg-accent/10 border border-accent/50'
+                                : 'bg-muted/50 border border-transparent hover:bg-accent/5 hover:border-accent/30'
+                        ]"
+                    >
+                        <!-- Rank Badge -->
+                        <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold shadow-md">
+                            #{{ leader.rank }}
+                        </div>
 
-                    <!-- User Info -->
-                    <div class="flex-1 min-w-0">
-                        <p :class="['text-sm font-semibold truncate', leader.isUser ? 'text-accent font-bold' : 'text-foreground']">
-                            {{ leader.name }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">Lvl {{ leader.level }}</p>
-                    </div>
+                        <!-- User Info -->
+                        <div class="flex-1 min-w-0">
+                            <p :class="['text-sm font-semibold truncate', leader.isUser ? 'text-accent font-bold' : 'text-foreground']">
+                                {{ leader.name }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">Lvl {{ leader.level }}</p>
+                        </div>
 
-                    <!-- XP with Animation -->
-                    <div class="text-right flex-shrink-0">
-                        <p class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
-                            {{ getDisplayXP(leader.id, leader.xp) }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">XP</p>
+                        <!-- XP with Animation -->
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                                {{ getDisplayXP(leader.id, leader.xp) }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">XP</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -285,9 +287,5 @@ onMounted(() => {
 
 .animate-bounce {
     animation: bounce 2s infinite;
-}
-
-.scale-102 {
-    transform: scale(1.02);
 }
 </style>
