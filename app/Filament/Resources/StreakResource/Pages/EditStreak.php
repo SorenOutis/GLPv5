@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\StreakResource\Pages;
 
 use App\Filament\Resources\StreakResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditStreak extends EditRecord
@@ -13,7 +12,7 @@ class EditStreak extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

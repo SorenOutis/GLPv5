@@ -2,63 +2,55 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Streak;
 use BackedEnum;
 use UnitEnum;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
+use App\Models\Streak;
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 
 class StreakResource extends Resource
 {
     protected static ?string $model = Streak::class;
-
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-fire';
-
-    protected static ?string $navigationLabel = 'Streaks';
-
-    protected static ?string $pluralModelLabel = 'Streaks';
-    
-    protected static string|UnitEnum|null $navigationGroup = 'Gamification';
-
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationLabel = 'Streak';
+    protected static string|UnitEnum|null $navigationGroup = 'User Management';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
             Select::make('user_id')
+                ->label('User')
                 ->relationship('user', 'name')
-                ->searchable()
-                ->preload()
                 ->required()
-                ->label('User'),
-
+                ->searchable()
+                ->preload(),
             TextInput::make('current_streak')
+                ->label('Current Streak (Days)')
                 ->numeric()
-                ->default(0)
-                ->label('Current Streak (days)')
-                ->hint('Consecutive days logged in'),
-
+                ->required()
+                ->minValue(0)
+                ->helperText('The current consecutive days of activity'),
             TextInput::make('longest_streak')
+                ->label('Longest Streak (Days)')
                 ->numeric()
-                ->default(0)
-                ->label('Longest Streak (days)')
-                ->hint('Longest streak achieved'),
-
-            DatePicker::make('last_login_date')
-                ->label('Last Login Date'),
-
+                ->required()
+                ->minValue(0)
+                ->helperText('The longest streak the user has achieved'),
+            DateTimePicker::make('last_login_date')
+                ->label('Last Login Date')
+                ->helperText('The date of the last login'),
             DateTimePicker::make('last_login_at')
-                ->label('Last Login Time')
-                ->disabled(),
+                ->label('Last Login At')
+                ->helperText('The timestamp of the last login'),
         ]);
     }
 
@@ -67,59 +59,41 @@ class StreakResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('user.name')
+                    ->label('User')
                     ->searchable()
-                    ->sortable()
-                    ->label('User Name'),
-
-                TextColumn::make('user.email')
-                    ->searchable()
-                    ->label('Email'),
-
-                BadgeColumn::make('current_streak')
-                    ->label('Current Streak')
-                    ->color(fn (int $state): string => match (true) {
-                        $state >= 30 => 'success',
-                        $state >= 14 => 'info',
-                        $state >= 7 => 'warning',
-                        default => 'gray',
-                    })
-                    ->icon('heroicon-m-fire')
-                    ->formatStateUsing(fn ($state) => "{$state} days"),
-
-                BadgeColumn::make('longest_streak')
-                    ->label('Longest Streak')
-                    ->color('warning')
-                    ->icon('heroicon-m-star')
-                    ->formatStateUsing(fn ($state) => "{$state} days"),
-
-                TextColumn::make('last_login_date')
-                    ->date()
-                    ->label('Last Login Date')
                     ->sortable(),
-
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->label('Created')
+                TextColumn::make('user.email')
+                    ->label('Email')
+                    ->searchable(),
+                TextColumn::make('current_streak')
+                    ->label('Current Streak')
+                    ->numeric()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->suffix(' days'),
+                TextColumn::make('longest_streak')
+                    ->label('Longest Streak')
+                    ->numeric()
+                    ->sortable()
+                    ->suffix(' days'),
+                TextColumn::make('last_login_date')
+                    ->label('Last Login Date')
+                    ->date('M d, Y')
+                    ->sortable(),
+                TextColumn::make('last_login_at')
+                    ->label('Last Login At')
+                    ->dateTime('M d, Y H:i')
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime('M d, Y')
+                    ->sortable(),
             ])
-            ->filters([
-                \Filament\Tables\Filters\Filter::make('active_streak')
-                    ->label('Has Active Streak (>0 days)')
-                    ->query(fn (Builder $query): Builder => $query->where('current_streak', '>', 0)),
-
-                \Filament\Tables\Filters\Filter::make('high_streak')
-                    ->label('High Streak (>= 30 days)')
-                    ->query(fn (Builder $query): Builder => $query->where('current_streak', '>=', 30)),
-            ])
+            ->filters([])
             ->actions([
-                Actions\EditAction::make(),
-                Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Actions\DeleteBulkAction::make(),
-            ])
-            ->defaultSort('current_streak', 'desc');
+            ->defaultSort('updated_at', 'desc');
     }
 
     public static function getPages(): array
