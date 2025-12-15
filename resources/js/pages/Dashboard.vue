@@ -247,6 +247,17 @@ const nextAchievementProgress = computed(() => {
     return userRank ? (userRank.xp / topXP) * 100 : 0;
 });
 
+const timeBasedGreeting = computed(() => {
+    const hour = new Date().getHours();
+    if (hour >= 0 && hour < 12) {
+        return 'Good Morning';
+    } else if (hour >= 12 && hour <= 18) {
+        return 'Good Afternoon';
+    } else {
+        return 'Good Evening';
+    }
+});
+
 const topFiveLeaderboard = computed(() => {
     return props.leaderboard.slice(0, 5);
 });
@@ -378,7 +389,7 @@ const demoXPToast = () => {
                     <div class="flex items-start justify-between gap-6">
                         <!-- User Info Section -->
                         <div class="flex flex-col gap-2 flex-1">
-                            <h4 class="text-2xl font-bold text-foreground">Welcome, <span class="text-yellow-500 font-bold">{{ userName }}!</span></h4>
+                            <h4 class="text-2xl font-bold text-foreground">{{ timeBasedGreeting }}, <span class="text-yellow-500 font-bold">{{ userName }}!</span></h4>
                             <p class="text-sm text-muted-foreground">Keep up your amazing progress and reach new milestones</p>
                             <div class="flex gap-2 mt-1">
                                 <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-accent/30 text-foreground font-medium">
