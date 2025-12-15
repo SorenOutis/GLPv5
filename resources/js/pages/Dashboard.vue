@@ -12,6 +12,7 @@ import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
 import StreakCard from '@/components/StreakCard.vue';
+import StreakHeatmap from '@/components/StreakHeatmap.vue';
 import DailyBonusModal from '@/components/DailyBonusModal.vue';
 import ImprovedLeaderboard from '@/components/ImprovedLeaderboard.vue';
 import {
@@ -89,6 +90,7 @@ interface StreakData {
     currentStreak: number;
     longestStreak: number;
     lastLoginDate: string | null;
+    loginDates?: string[];
 }
 
 interface DailyBonusData {
@@ -646,6 +648,20 @@ const demoXPToast = () => {
 
             <!-- Improved Leaderboard -->
             <ImprovedLeaderboard :leaderboard="leaderboard" />
+
+            <!-- Streak Heatmap -->
+            <Card v-if="streak?.loginDates" class="border-sidebar-border/70 dark:border-sidebar-border transition-all duration-200 hover:border-sidebar-border hover:shadow-md dark:hover:shadow-lg">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <span>📅</span>
+                        <span>Activity Heatmap</span>
+                    </CardTitle>
+                    <CardDescription>Your login activity throughout the year</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <StreakHeatmap :login-dates="streak.loginDates" />
+                </CardContent>
+            </Card>
 
             <!-- Main Content Grid -->
             <div class="grid gap-4 lg:grid-cols-3">

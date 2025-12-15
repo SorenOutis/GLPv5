@@ -6,6 +6,7 @@ import CardDescription from '@/components/ui/card/CardDescription.vue';
 import CardHeader from '@/components/ui/card/CardHeader.vue';
 import CardTitle from '@/components/ui/card/CardTitle.vue';
 import StreakLeaderboardModal from '@/components/StreakLeaderboardModal.vue';
+import StreakFlameIcon from '@/components/StreakFlameIcon.vue';
 
 interface StreakData {
     currentStreak: number;
@@ -64,7 +65,7 @@ const streakMessage = computed(() => {
         @click="isLeaderboardModalOpen = true">
         <CardHeader class="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle class="text-sm font-medium flex items-center gap-2">
-                <span class="text-xl">🔥</span>
+                <StreakFlameIcon :streak="currentStreak" size="sm" />
                 <span>Streak</span>
             </CardTitle>
             <svg class="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">

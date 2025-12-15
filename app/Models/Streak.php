@@ -17,6 +17,7 @@ class Streak extends Model
         'longest_streak',
         'last_login_date',
         'last_login_at',
+        'login_dates',
     ];
 
     protected function casts(): array
@@ -24,6 +25,7 @@ class Streak extends Model
         return [
             'last_login_date' => 'date',
             'last_login_at' => 'datetime',
+            'login_dates' => 'array',
         ];
     }
 
@@ -44,18 +46,22 @@ class Streak extends Model
         $today = Carbon::now()->toDateString();
         
         $streak = self::where('user_id', $user->id)->first();
+        $loginDates = [];
         
         if (!$streak) {
             // Create new streak record for new user
+            $loginDates = [$today];
             $streak = self::create([
                 'user_id' => $user->id,
                 'current_streak' => 1,
                 'longest_streak' => 1,
                 'last_login_date' => $today,
                 'last_login_at' => Carbon::now(),
+                'login_dates' => $loginDates,
             ]);
         } else {
             $lastLoginDate = $streak->last_login_date?->toDateString();
+            $loginDates = $streak->login_dates ?? [];
             
             if ($lastLoginDate === $today) {
                 // User already logged in today, don't increment
@@ -64,6 +70,11 @@ class Streak extends Model
                 ]);
             } else {
                 $yesterday = Carbon::now()->subDay()->toDateString();
+                
+                // Add today's date to login_dates if not already there
+                if (!in_array($today, $loginDates)) {
+                    $loginDates[] = $today;
+                }
                 
                 if ($lastLoginDate === $yesterday) {
                     // User logged in yesterday, increment streak
@@ -75,6 +86,7 @@ class Streak extends Model
                         'longest_streak' => $newLongestStreak,
                         'last_login_date' => $today,
                         'last_login_at' => Carbon::now(),
+                        'login_dates' => $loginDates,
                     ]);
 
                     // Notify user about streak increase
@@ -85,6 +97,7 @@ class Streak extends Model
                         'current_streak' => 1,
                         'last_login_date' => $today,
                         'last_login_at' => Carbon::now(),
+                        'login_dates' => $loginDates,
                     ]);
                 }
             }

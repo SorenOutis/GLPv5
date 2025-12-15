@@ -26,6 +26,7 @@ class DashboardController extends Controller
             'longest_streak' => 0,
             'last_login_date' => null,
             'last_login_at' => null,
+            'login_dates' => [],
         ]);
 
         // Check if user has received daily bonus
@@ -153,6 +154,7 @@ class DashboardController extends Controller
                 'currentStreak' => $streak->current_streak,
                 'longestStreak' => $streak->longest_streak,
                 'lastLoginDate' => $streak->last_login_date,
+                'loginDates' => $streak->login_dates ?? [],
             ],
             'dailyBonus' => [
                 'hasReceivedToday' => $hasReceivedBonus,
