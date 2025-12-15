@@ -94,6 +94,12 @@ Route::post('assignments/{assignment}/upload', [\App\Http\Controllers\Assignment
     ->middleware(['auth', 'verified'])
     ->name('assignment.upload');
 
+Route::get('notifications', function () {
+    return Inertia::render('Notifications');
+})
+    ->middleware(['auth', 'verified'])
+    ->name('notifications');
+
 // API Routes
 Route::prefix('api')->group(function () {
     Route::get('logo', [\App\Http\Controllers\LogoController::class, 'getActive']);

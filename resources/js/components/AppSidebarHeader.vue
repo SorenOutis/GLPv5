@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import Button from '@/components/ui/button/Button.vue';
@@ -189,7 +190,12 @@ onMounted(() => {
 
                     <!-- Footer -->
                     <div class="p-3 border-t border-sidebar-border/70 text-center">
-                        <button class="text-xs text-accent hover:underline transition-colors">View all notifications</button>
+                        <button 
+                            @click="() => { isNotificationOpen = false; router.push('/notifications'); }"
+                            class="text-xs text-primary hover:underline transition-colors font-medium"
+                        >
+                            View all notifications
+                        </button>
                     </div>
                 </div>
 

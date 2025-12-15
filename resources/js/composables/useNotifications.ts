@@ -12,7 +12,17 @@ export interface DynamicNotification {
     data?: Record<string, any>;
 }
 
-const notifications = ref<DynamicNotification[]>([]);
+// Initialize from localStorage or as empty
+const getInitialNotifications = (): DynamicNotification[] => {
+    try {
+        const stored = localStorage.getItem('app_notifications');
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const notifications = ref<DynamicNotification[]>(getInitialNotifications());
 const isLoading = ref(false);
 const refreshInterval = ref<NodeJS.Timeout | null>(null);
 
@@ -20,6 +30,14 @@ export function useNotifications() {
     const unreadCount = computed(() => 
         notifications.value.filter(n => !n.read).length
     );
+
+    const saveNotificationsToStorage = (notifs: DynamicNotification[]) => {
+        try {
+            localStorage.setItem('app_notifications', JSON.stringify(notifs));
+        } catch (error) {
+            console.error('Failed to save notifications to localStorage:', error);
+        }
+    };
 
     const fetchNotifications = async () => {
         isLoading.value = true;
@@ -43,6 +61,7 @@ export function useNotifications() {
             });
             
             notifications.value = combined;
+            saveNotificationsToStorage(combined);
             isLoading.value = false;
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
@@ -90,6 +109,9 @@ export function useNotifications() {
             notification.read = true;
         }
 
+        // Persist to storage
+        saveNotificationsToStorage(notifications.value);
+
         // Handle different notification types
         if (notificationId >= 10000) {
             // Community post
@@ -125,6 +147,7 @@ export function useNotifications() {
         try {
             await axios.delete(`/api/notifications/${notificationId}`);
             notifications.value = notifications.value.filter(n => n.id !== notificationId);
+            saveNotificationsToStorage(notifications.value);
         } catch (error) {
             console.error('Failed to delete notification:', error);
         }
@@ -133,6 +156,9 @@ export function useNotifications() {
     const markAllAsRead = async () => {
         // Mark all notifications in the frontend state
         notifications.value.forEach(n => n.read = true);
+        
+        // Persist to storage
+        saveNotificationsToStorage(notifications.value);
         
         // Prepare items to mark as read
         const announcementItems = notifications.value.filter(n => n.type === 'announcement' || n.type === 'community_post');
