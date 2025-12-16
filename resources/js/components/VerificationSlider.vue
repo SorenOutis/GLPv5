@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 interface Props {
     modelValue: boolean;
@@ -20,10 +20,22 @@ const sliderPosition = ref(0);
 const sliderRef = ref<HTMLElement>();
 const handleRef = ref<HTMLElement>();
 
-const isVerified = computed(() => sliderPosition.value >= 90);
+const isVerified = computed(() => sliderPosition.value >= 100);
 
 const handleMouseDown = () => {
     isDragging.value = true;
+};
+
+const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging.value || !sliderRef.value) return;
+
+    const slider = sliderRef.value;
+    const rect = slider.getBoundingClientRect();
+
+    let newPosition = e.clientX - rect.left;
+    newPosition = Math.max(0, Math.min(newPosition, rect.width));
+
+    sliderPosition.value = (newPosition / rect.width) * 100;
 };
 
 const handleMouseUp = () => {
@@ -36,22 +48,20 @@ const handleMouseUp = () => {
     }
 };
 
-const handleMouseMove = (e: MouseEvent) => {
+const handleTouchStart = () => {
+    isDragging.value = true;
+};
+
+const handleTouchMove = (e: TouchEvent) => {
     if (!isDragging.value || !sliderRef.value) return;
 
     const slider = sliderRef.value;
     const rect = slider.getBoundingClientRect();
-    const handleWidth = 96; // w-24 = 96px
-    const maxTravel = rect.width - handleWidth;
 
-    let newPosition = e.clientX - rect.left - handleWidth / 2;
-    newPosition = Math.max(0, Math.min(newPosition, maxTravel));
+    let newPosition = e.touches[0].clientX - rect.left;
+    newPosition = Math.max(0, Math.min(newPosition, rect.width));
 
-    sliderPosition.value = (newPosition / maxTravel) * 100;
-};
-
-const handleTouchStart = () => {
-    isDragging.value = true;
+    sliderPosition.value = (newPosition / rect.width) * 100;
 };
 
 const handleTouchEnd = () => {
@@ -63,19 +73,19 @@ const handleTouchEnd = () => {
     }
 };
 
-const handleTouchMove = (e: TouchEvent) => {
-    if (!isDragging.value || !sliderRef.value) return;
+onMounted(() => {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+});
 
-    const slider = sliderRef.value;
-    const rect = slider.getBoundingClientRect();
-    const handleWidth = 96;
-    const maxTravel = rect.width - handleWidth;
-
-    let newPosition = e.touches[0].clientX - rect.left - handleWidth / 2;
-    newPosition = Math.max(0, Math.min(newPosition, maxTravel));
-
-    sliderPosition.value = (newPosition / maxTravel) * 100;
-};
+onUnmounted(() => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleTouchEnd);
+});
 
 const handleClose = () => {
     emit('update:modelValue', false);
@@ -120,8 +130,7 @@ const handleContinue = async () => {
 
                         <!-- Slider -->
                         <div class="pt-4">
-                            <div ref="sliderRef" @mousemove="handleMouseMove" @mouseup="handleMouseUp"
-                                @mouseleave="handleMouseUp" @touchmove="handleTouchMove" @touchend="handleTouchEnd"
+                            <div ref="sliderRef"
                                 class="relative w-full h-16 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-gray-700 dark:to-gray-600 rounded-full cursor-grab active:cursor-grabbing overflow-hidden border border-blue-200 dark:border-gray-600">
 
                                 <!-- Slider Track Background -->
@@ -131,17 +140,17 @@ const handleContinue = async () => {
                                 <!-- Handle -->
                                 <div ref="handleRef" @mousedown="handleMouseDown" @touchstart="handleTouchStart"
                                     :style="{ transform: `translateX(${sliderPosition}%)` }"
-                                    class="absolute top-1/2 left-0 -translate-y-1/2 w-24 h-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-600 shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors duration-300"
+                                    class="absolute top-1/2 left-0 -translate-y-1/2 w-16 h-12 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-600 shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors duration-300"
                                     :class="{ 'bg-gradient-to-r from-green-600 to-green-500 dark:from-green-500 dark:to-green-600': isVerified }">
                                     <!-- Arrow Icon -->
-                                    <svg class="w-6 h-6 text-white transition-all duration-300"
-                                        :class="{ 'translate-x-2 opacity-0': isVerified }" fill="currentColor"
+                                    <svg class="w-4 h-4 text-white transition-all duration-300"
+                                        :class="{ 'translate-x-1 opacity-0': isVerified }" fill="currentColor"
                                         viewBox="0 0 24 24">
                                         <path d="M13.5 4.5L19 10m0 0l-5.5 5.5m5.5-5.5h-16" />
                                     </svg>
                                     <!-- Check Icon -->
                                     <svg v-if="isVerified"
-                                        class="w-6 h-6 text-white absolute transition-all duration-300" fill="none"
+                                        class="w-4 h-4 text-white absolute transition-all duration-300" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                                             d="M5 13l4 4L19 7" />
