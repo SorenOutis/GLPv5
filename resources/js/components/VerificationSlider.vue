@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { CheckCircle2, ChevronRight, AlertCircle } from 'lucide-vue-next';
+import Button from '@/components/ui/button/Button.vue';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface Props {
     modelValue: boolean;
@@ -19,11 +22,15 @@ const isDragging = ref(false);
 const sliderPosition = ref(0);
 const sliderRef = ref<HTMLElement>();
 const handleRef = ref<HTMLElement>();
+const attemptCount = ref(0);
+const maxAttempts = 3;
 
 const isVerified = computed(() => sliderPosition.value >= 100);
+const isFailed = computed(() => attemptCount.value >= maxAttempts);
 
 const handleMouseDown = () => {
     isDragging.value = true;
+    attemptCount.value = 0;
 };
 
 const handleMouseMove = (e: MouseEvent) => {
@@ -43,6 +50,7 @@ const handleMouseUp = () => {
     if (!isVerified.value) {
         // Reset slider if not fully dragged
         setTimeout(() => {
+            attemptCount.value += 1;
             sliderPosition.value = 0;
         }, 200);
     }
@@ -50,6 +58,7 @@ const handleMouseUp = () => {
 
 const handleTouchStart = () => {
     isDragging.value = true;
+    attemptCount.value = 0;
 };
 
 const handleTouchMove = (e: TouchEvent) => {
@@ -68,6 +77,7 @@ const handleTouchEnd = () => {
     isDragging.value = false;
     if (!isVerified.value) {
         setTimeout(() => {
+            attemptCount.value += 1;
             sliderPosition.value = 0;
         }, 200);
     }
@@ -88,127 +98,157 @@ onUnmounted(() => {
 });
 
 const handleClose = () => {
+    resetSlider();
     emit('update:modelValue', false);
-    sliderPosition.value = 0;
 };
 
 const handleContinue = async () => {
     emit('verified');
-    // The parent component will handle navigation
+};
+
+const resetSlider = () => {
+    sliderPosition.value = 0;
+    attemptCount.value = 0;
 };
 </script>
 
 <template>
-    <Teleport to="body">
-        <Transition name="modal">
-            <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <!-- Backdrop -->
-                <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" @click="handleClose" />
+    <Dialog :open="modelValue" @update:open="handleClose">
+        <DialogContent
+            class="max-w-md border-0 shadow-2xl overflow-hidden p-0 rounded-2xl bg-white dark:bg-slate-900">
+            <!-- Gradient background -->
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800"></div>
 
-                <!-- Modal Content -->
-                <div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 max-w-md w-full">
-                    <!-- Close Button -->
-                    <button @click="handleClose"
-                        class="absolute top-5 right-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+            <!-- Decorative elements -->
+            <div
+                class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-amber-300 to-orange-300 rounded-full blur-3xl opacity-20 dark:opacity-10"></div>
+            <div
+                class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-tr from-yellow-300 to-amber-300 rounded-full blur-3xl opacity-20 dark:opacity-10"></div>
 
-                    <!-- Content -->
-                    <div class="text-center space-y-6">
-                        <!-- Title -->
-                        <div>
-                            <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-                                Verification Required
-                            </h2>
-                            <p class="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-                                Please slide to confirm you're human.
-                            </p>
+            <!-- Content -->
+            <div class="relative z-10 p-8 space-y-6">
+                <!-- Close button -->
+                <button @click="handleClose"
+                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <!-- Header -->
+                <div class="text-center space-y-2">
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-500 to-yellow-600 bg-clip-text text-transparent">
+                        Verify Your Identity
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">
+                        Please complete the slider to continue
+                    </p>
+                </div>
+
+                <!-- Status indicators -->
+                <div v-if="!isVerified && !isFailed" class="flex justify-center gap-1">
+                    <div v-for="i in maxAttempts" :key="i"
+                        :class="[
+                            'h-1.5 rounded-full transition-all duration-300',
+                            i <= attemptCount
+                                ? 'bg-gray-300 dark:bg-gray-600 w-2'
+                                : 'bg-gradient-to-r from-amber-400 to-orange-400 w-3'
+                        ]"></div>
+                </div>
+
+                <!-- Slider Container -->
+                <div class="space-y-3">
+                    <!-- Main Slider -->
+                    <div v-if="!isFailed"
+                        ref="sliderRef"
+                        class="relative w-full h-14 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-slate-700 dark:to-slate-600 rounded-full cursor-grab active:cursor-grabbing overflow-hidden border-2 border-gray-200 dark:border-slate-600 shadow-md hover:shadow-lg transition-shadow duration-300">
+
+                        <!-- Success Track -->
+                        <div v-if="isVerified"
+                            class="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 dark:from-green-600 dark:via-emerald-500 dark:to-green-600 transition-all duration-500"></div>
+
+                        <!-- Progress Track -->
+                        <div v-else
+                            :style="{ width: `${sliderPosition}%` }"
+                            class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 dark:from-amber-500 dark:via-orange-500 dark:to-yellow-500 transition-all duration-75 ease-out"></div>
+
+                        <!-- Handle -->
+                        <div ref="handleRef"
+                            @mousedown="handleMouseDown"
+                            @touchstart="handleTouchStart"
+                            :style="{ transform: `translateX(calc(${sliderPosition}% - 24px))` }"
+                            :class="[
+                                'absolute top-1/2 left-0 -translate-y-1/2 w-12 h-12 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 z-20',
+                                isVerified
+                                    ? 'bg-gradient-to-br from-green-400 to-emerald-500 dark:from-green-500 dark:to-emerald-600'
+                                    : 'bg-gradient-to-br from-white to-gray-50 dark:from-slate-300 dark:to-slate-200'
+                            ]">
+                            <!-- Arrow Icon -->
+                            <ChevronRight v-if="!isVerified"
+                                :size="20"
+                                class="text-orange-600 dark:text-orange-500 transition-all duration-300"
+                                :class="{ 'opacity-0 translate-x-2': isVerified }" />
+                            <!-- Check Icon -->
+                            <CheckCircle2 v-else
+                                :size="24"
+                                class="text-white absolute transition-all duration-300"
+                                stroke-width="1.5" />
                         </div>
 
-                        <!-- Slider -->
-                        <div class="pt-4">
-                            <div ref="sliderRef"
-                                class="relative w-full h-16 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-gray-700 dark:to-gray-600 rounded-full cursor-grab active:cursor-grabbing overflow-hidden border border-blue-200 dark:border-gray-600">
+                        <!-- Text Label -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <span v-if="!isVerified"
+                                class="text-gray-600 dark:text-gray-400 font-semibold text-sm">
+                                Slide to Verify
+                            </span>
+                            <span v-else class="text-white font-bold">
+                                Verified!
+                            </span>
+                        </div>
+                    </div>
 
-                                <!-- Slider Track Background -->
-                                <div v-if="isVerified"
-                                    class="absolute inset-0 bg-gradient-to-r from-green-400 to-green-300 dark:from-green-600 dark:to-green-500 transition-all duration-300" />
-
-                                <!-- Handle -->
-                                <div ref="handleRef" @mousedown="handleMouseDown" @touchstart="handleTouchStart"
-                                    :style="{ transform: `translateX(${sliderPosition}%)` }"
-                                    class="absolute top-1/2 left-0 -translate-y-1/2 w-16 h-12 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-600 shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors duration-300"
-                                    :class="{ 'bg-gradient-to-r from-green-600 to-green-500 dark:from-green-500 dark:to-green-600': isVerified }">
-                                    <!-- Arrow Icon -->
-                                    <svg class="w-4 h-4 text-white transition-all duration-300"
-                                        :class="{ 'translate-x-1 opacity-0': isVerified }" fill="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path d="M13.5 4.5L19 10m0 0l-5.5 5.5m5.5-5.5h-16" />
-                                    </svg>
-                                    <!-- Check Icon -->
-                                    <svg v-if="isVerified"
-                                        class="w-4 h-4 text-white absolute transition-all duration-300" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                            d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-
-                                <!-- Text Label -->
-                                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <span v-if="!isVerified" class="text-gray-600 dark:text-gray-300 font-medium">
-                                        Slide to Verify
-                                    </span>
-                                    <span v-else class="text-green-600 dark:text-green-400 font-bold">
-                                        Verified!
-                                    </span>
+                    <!-- Failed State -->
+                    <div v-else
+                        class="space-y-4 text-center">
+                        <div class="flex justify-center">
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-400 rounded-full blur-lg opacity-40"></div>
+                                <div
+                                    class="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950 rounded-full p-3 border border-red-200 dark:border-red-800">
+                                    <AlertCircle class="w-8 h-8 text-red-600 dark:text-red-400" />
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Continue Button -->
-                        <Transition name="fade">
-                            <button v-if="isVerified" @click="handleContinue"
-                                class="w-full px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-green-600 to-green-500 dark:from-green-600 dark:to-green-500 text-white hover:shadow-lg hover:shadow-green-500/50 transition-all duration-300">
-                                Continue
-                            </button>
-                        </Transition>
+                        <div>
+                            <p class="text-red-600 dark:text-red-400 font-semibold">
+                                Too Many Attempts
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                                Please try again later or contact support.
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Continue Button -->
+                <Transition
+                    enter-active-class="animate-in fade-in scale-in duration-300"
+                    leave-active-class="animate-out fade-out scale-out duration-200">
+                    <Button v-if="isVerified"
+                        @click="handleContinue"
+                        class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 dark:from-green-600 dark:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-base">
+                        Continue
+                    </Button>
+                </Transition>
+
+                <!-- Security message -->
+                <div class="text-center text-xs text-gray-500 dark:text-gray-400">
+                    <p>🔒 This verification helps keep your account secure</p>
+                </div>
             </div>
-        </Transition>
-    </Teleport>
+        </DialogContent>
+    </Dialog>
 </template>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-    transition: all 0.3s ease;
-}
-
-.modal-enter-from {
-    opacity: 0;
-}
-
-.modal-leave-to {
-    opacity: 0;
-}
-
-.modal-enter-from :deep(.relative),
-.modal-leave-to :deep(.relative) {
-    transform: scale(0.95);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-</style>
