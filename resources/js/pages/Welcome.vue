@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import { useLogo } from '@/composables/useLogo';
 import { useAppearance } from '@/composables/useAppearance';
+import VerificationSlider from '@/components/VerificationSlider.vue';
 
 const mouseX = ref(0);
 const mouseY = ref(0);
 const showModal = ref(false);
+const showVerification = ref(false);
+const verificationRedirectTo = ref<'login' | 'register'>('login');
 const { hasLogo, logo, getLightLogo, getDarkLogo } = useLogo();
 const { appearance, updateAppearance } = useAppearance();
 
@@ -32,6 +35,20 @@ const toggleTheme = () => {
         updateAppearance('light');
     } else {
         updateAppearance('dark');
+    }
+};
+
+const openVerification = (redirectTo: 'login' | 'register') => {
+    verificationRedirectTo.value = redirectTo;
+    showVerification.value = true;
+};
+
+const handleVerified = () => {
+    showVerification.value = false;
+    if (verificationRedirectTo.value === 'login') {
+        router.visit(login());
+    } else {
+        router.visit(register());
     }
 };
 
@@ -122,17 +139,17 @@ onMounted(() => {
 
                     <Link v-if="$page.props.auth.user" :href="dashboard()"
                         class="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300">
-                    Dashboard
+                        Dashboard
                     </Link>
                     <template v-else>
-                        <Link :href="login()"
+                        <button @click="openVerification('login')"
                             class="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300">
-                        Log in
-                        </Link>
-                        <Link v-if="canRegister" :href="register()"
+                            Log in
+                        </button>
+                        <button v-if="canRegister" @click="openVerification('register')"
                             class="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300">
-                        Get Started
-                        </Link>
+                            Get Started
+                        </button>
                     </template>
                 </div>
             </nav>
@@ -188,10 +205,10 @@ onMounted(() => {
 
                     <!-- CTA Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                        <Link v-if="canRegister" :href="register()"
+                        <button v-if="canRegister" @click="openVerification('register')"
                             class="px-8 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-2xl hover:shadow-blue-500/50 dark:hover:shadow-blue-500/30 transition-all duration-300 text-center transform hover:scale-105">
-                        Start Your Journey
-                        </Link>
+                            Start Your Journey
+                        </button>
                         <button @click="showModal = true"
                             class="px-8 py-3 rounded-xl font-semibold border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 text-center">
                             Learn More
@@ -300,10 +317,10 @@ onMounted(() => {
                     <p class="text-lg opacity-95 mb-8 max-w-2xl mx-auto font-light">
                         Join thousands of learners who are already transforming their skills
                     </p>
-                    <Link v-if="canRegister" :href="register()"
+                    <button v-if="canRegister" @click="openVerification('register')"
                         class="inline-block px-8 py-3 rounded-xl font-semibold bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 transition-all duration-300 transform hover:scale-105">
-                    Create Free Account
-                    </Link>
+                        Create Free Account
+                    </button>
                 </div>
             </div>
         </main>
@@ -378,7 +395,7 @@ onMounted(() => {
             </div>
         </footer>
 
-        <!-- Modal -->
+        <!-- Learn More Modal -->
         <Teleport to="body">
             <Transition name="modal">
                 <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -405,6 +422,10 @@ onMounted(() => {
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- Verification Slider Modal -->
+        <VerificationSlider v-model="showVerification" :redirect-to="verificationRedirectTo"
+            @verified="handleVerified" />
     </div>
 </template>
 
