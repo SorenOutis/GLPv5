@@ -175,12 +175,12 @@ const resetSlider = () => {
                             class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 dark:from-amber-500 dark:via-orange-500 dark:to-yellow-500 transition-all duration-75 ease-out"></div>
 
                         <!-- Handle -->
-                        <div ref="handleRef"
-                            @mousedown="handleMouseDown"
-                            @touchstart="handleTouchStart"
-                            :style="{ transform: `translateX(calc(${sliderPosition}% - 24px))` }"
-                            :class="[
-                                'absolute top-1/2 left-0 -translate-y-1/2 w-12 h-12 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 z-20',
+                         <div ref="handleRef"
+                             @mousedown="handleMouseDown"
+                             @touchstart="handleTouchStart"
+                             :style="{ left: `${sliderPosition}%`, transform: `translateX(-50%) translateY(-50%)` }"
+                             :class="[
+                                 'absolute top-1/2 w-12 h-12 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 z-20',
                                 isVerified
                                     ? 'bg-gradient-to-br from-green-400 to-emerald-500 dark:from-green-500 dark:to-emerald-600'
                                     : 'bg-gradient-to-br from-white to-gray-50 dark:from-slate-300 dark:to-slate-200'

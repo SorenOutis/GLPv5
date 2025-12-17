@@ -72,25 +72,25 @@ onMounted(() => {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
     <div
-        class="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 text-foreground transition-colors duration-500 overflow-hidden relative">
+        class="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-hidden relative">
         <!-- Animated Background Gradient Orbs -->
         <div class="fixed inset-0 -z-10 overflow-hidden">
             <div
-                class="absolute w-80 h-80 rounded-full blur-3xl opacity-20 dark:opacity-10 bg-blue-400 dark:bg-blue-600 top-20 -left-40 animate-blob" />
-            <div class="absolute w-80 h-80 rounded-full blur-3xl opacity-20 dark:opacity-10 bg-purple-400 dark:bg-purple-600 bottom-20 -right-40 animate-blob"
+                class="absolute w-80 h-80 rounded-full blur-3xl opacity-20 bg-primary top-20 -left-40 animate-blob" />
+            <div class="absolute w-80 h-80 rounded-full blur-3xl opacity-20 bg-secondary bottom-20 -right-40 animate-blob"
                 style="animation-delay: 2s" />
-            <div class="absolute w-80 h-80 rounded-full blur-3xl opacity-20 dark:opacity-10 bg-pink-400 dark:bg-pink-600 top-1/2 left-1/2 animate-blob"
+            <div class="absolute w-80 h-80 rounded-full blur-3xl opacity-20 bg-accent top-1/2 left-1/2 animate-blob"
                 style="animation-delay: 4s" />
         </div>
 
         <!-- Gradient Light Effect Following Mouse -->
-        <div class="fixed inset-0 -z-10 pointer-events-none" :style="{
-            background: `radial-gradient(600px at ${mouseX}px ${mouseY}px, rgba(59, 130, 246, 0.1), transparent 80%)`,
+        <div class="fixed inset-0 -z-10 pointer-events-none opacity-50" :style="{
+            background: `radial-gradient(600px at ${mouseX}px ${mouseY}px, rgb(var(--color-primary-rgb) / 0.1), transparent 80%)`,
         }" />
 
         <!-- Header Navigation -->
         <header
-            class="sticky top-0 z-50 backdrop-blur-xl bg-white/60 dark:bg-gray-950/80 border-b border-gray-200/50 dark:border-gray-700/30 shadow-sm dark:shadow-lg/10 transition-all duration-500">
+            class="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border shadow-sm transition-all duration-500">
             <nav class="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
                 <!-- Logo -->
                 <div class="flex items-center gap-3 group cursor-pointer">
@@ -112,11 +112,11 @@ onMounted(() => {
                     </div>
                     <!-- Fallback Logo -->
                     <div v-else
-                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 dark:from-blue-400 dark:via-purple-500 dark:to-pink-500 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                        <span class="text-white font-bold text-lg">✦</span>
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                        <span class="text-primary-foreground font-bold text-lg">✦</span>
                     </div>
                     <span
-                        class="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        class="font-bold text-xl text-primary">
                         LevelUp Academy
                     </span>
                 </div>
@@ -125,7 +125,7 @@ onMounted(() => {
                 <div class="flex items-center gap-3">
                     <!-- Theme Toggle Button -->
                     <button @click="toggleTheme"
-                        class="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500"
+                        class="p-2.5 rounded-lg bg-accent text-accent-foreground hover:bg-accent/80 transition-all duration-300 border border-border"
                         :aria-label="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
                         <svg v-if="!isDarkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
@@ -138,16 +138,16 @@ onMounted(() => {
                     </button>
 
                     <Link v-if="$page.props.auth.user" :href="dashboard()"
-                        class="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300">
+                        class="px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors duration-300">
                         Dashboard
                     </Link>
                     <template v-else>
                         <button @click="openVerification('login')"
-                            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300">
+                            class="px-4 py-2 rounded-lg text-sm font-medium text-foreground hover:bg-accent transition-colors duration-300">
                             Log in
                         </button>
                         <button v-if="canRegister" @click="openVerification('register')"
-                            class="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300">
+                            class="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300">
                             Get Started
                         </button>
                     </template>
@@ -164,21 +164,21 @@ onMounted(() => {
                     <div class="space-y-4">
                         <div class="inline-block">
                             <span
-                                class="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50">
+                                class="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary border border-primary/30">
                                 Welcome to the Future
                             </span>
                         </div>
                         <h1 class="text-5xl lg:text-7xl font-bold leading-tight space-y-2 tracking-tight">
                             <span class="block">Level Up Your</span>
                             <span
-                                class="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                                class="block text-primary">
                                 Learning Journey
                             </span>
                         </h1>
                     </div>
 
                     <p
-                        class="text-xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl font-light tracking-wide">
+                        class="text-xl text-muted-foreground leading-relaxed max-w-2xl font-light tracking-wide">
                         Unlock your potential with our gamified learning platform. Track your
                         progress, earn achievements, compete on leaderboards, and master new skills.
                     </p>
@@ -191,13 +191,13 @@ onMounted(() => {
                             { icon: '🏆', title: 'Compete', desc: 'Leaderboards' },
                             { icon: '⚡', title: 'Lightning Fast', desc: 'Smooth & Snappy' },
                         ]" :key="index"
-                            class="group p-5 rounded-xl bg-white/70 dark:bg-gray-800/40 border border-gray-200/60 dark:border-gray-700/40 hover:bg-white dark:hover:bg-gray-800/70 hover:border-blue-400 dark:hover:border-blue-600/60 hover:shadow-md dark:hover:shadow-lg/20 transition-all duration-300 backdrop-blur-sm">
+                            class="group p-5 rounded-xl bg-card border border-border hover:shadow-md transition-all duration-300 backdrop-blur-sm">
                             <div class="text-2xl mb-2">{{ feature.icon }}</div>
                             <h3
-                                class="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                class="font-semibold text-foreground group-hover:text-primary transition-colors">
                                 {{ feature.title }}
                             </h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                            <p class="text-sm text-muted-foreground">
                                 {{ feature.desc }}
                             </p>
                         </div>
@@ -206,11 +206,11 @@ onMounted(() => {
                     <!-- CTA Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3 pt-4">
                         <button v-if="canRegister" @click="openVerification('register')"
-                            class="px-8 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white hover:shadow-2xl hover:shadow-blue-500/50 dark:hover:shadow-blue-500/30 transition-all duration-300 text-center transform hover:scale-105">
+                            class="px-8 py-3 rounded-xl font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 text-center transform hover:scale-105">
                             Start Your Journey
                         </button>
                         <button @click="showModal = true"
-                            class="px-8 py-3 rounded-xl font-semibold border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 text-center">
+                            class="px-8 py-3 rounded-xl font-semibold border border-border text-foreground hover:bg-accent transition-all duration-300 text-center">
                             Learn More
                         </button>
                     </div>
@@ -221,7 +221,7 @@ onMounted(() => {
                     <!-- Floating Cards -->
                     <div class="absolute inset-0 perspective">
                         <!-- Card 1 -->
-                        <div class="absolute w-48 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 p-6 text-white shadow-2xl top-0 right-0 animate-float"
+                        <div class="absolute w-48 h-32 rounded-2xl bg-primary text-primary-foreground p-6 shadow-2xl top-0 right-0 animate-float"
                             style="animation-delay: 0s">
                             <div class="text-2xl mb-2">⚡</div>
                             <h3 class="font-bold text-sm mb-1">Instant Progress</h3>
@@ -229,7 +229,7 @@ onMounted(() => {
                         </div>
 
                         <!-- Card 2 -->
-                        <div class="absolute w-48 h-32 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 p-6 text-white shadow-2xl bottom-12 left-0 animate-float"
+                        <div class="absolute w-48 h-32 rounded-2xl bg-secondary text-secondary-foreground p-6 shadow-2xl bottom-12 left-0 animate-float"
                             style="animation-delay: 1s">
                             <div class="text-2xl mb-2">🔥</div>
                             <h3 class="font-bold text-sm mb-1">Daily Streaks</h3>
@@ -237,7 +237,7 @@ onMounted(() => {
                         </div>
 
                         <!-- Card 3 -->
-                        <div class="absolute w-48 h-32 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 dark:from-pink-600 dark:to-pink-700 p-6 text-white shadow-2xl bottom-0 right-12 animate-float"
+                        <div class="absolute w-48 h-32 rounded-2xl bg-accent text-accent-foreground p-6 shadow-2xl bottom-0 right-12 animate-float"
                             style="animation-delay: 2s">
                             <div class="text-2xl mb-2">🏆</div>
                             <h3 class="font-bold text-sm mb-1">Earn Badges</h3>
@@ -248,18 +248,18 @@ onMounted(() => {
             </div>
 
             <!-- Stats Section -->
-            <div class="grid grid-cols-3 gap-4 lg:gap-6 py-16 border-t border-gray-200/50 dark:border-gray-800/50">
+            <div class="grid grid-cols-3 gap-4 lg:gap-6 py-16 border-t border-border">
                 <div v-for="(stat, index) in [
                     { value: '10K+', label: 'Active Users' },
                     { value: '500+', label: 'Learning Resources' },
                     { value: '99.9%', label: 'Uptime' },
                 ]" :key="index" class="text-center group">
                     <p
-                        class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-purple-700 dark:group-hover:from-blue-300 dark:group-hover:to-purple-300 transition-all duration-300">
+                        class="text-4xl lg:text-5xl font-bold text-primary group-hover:text-primary/80 transition-all duration-300">
                         {{ stat.value }}
                     </p>
                     <p
-                        class="text-gray-700 dark:text-gray-300 text-sm mt-3 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300 font-medium">
+                        class="text-muted-foreground text-sm mt-3 group-hover:text-foreground transition-colors duration-300 font-medium">
                         {{ stat.label }}
                     </p>
                 </div>
@@ -269,7 +269,7 @@ onMounted(() => {
             <div class="mt-28">
                 <div class="text-center mb-16 space-y-4">
                     <h2 class="text-4xl lg:text-5xl font-bold tracking-tight">Why Choose LevelUp Academy?</h2>
-                    <p class="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto font-light">
+                    <p class="text-lg text-muted-foreground max-w-2xl mx-auto font-light">
                         Everything you need to succeed in one powerful platform
                     </p>
                 </div>
@@ -292,15 +292,15 @@ onMounted(() => {
                             desc: 'Compete with peers and earn recognition for achievements',
                         },
                     ]" :key="index"
-                        class="group p-8 rounded-2xl bg-white/70 dark:bg-gray-800/50 border border-gray-200/60 dark:border-gray-700/40 hover:bg-white dark:hover:bg-gray-800/80 hover:shadow-xl dark:hover:shadow-2xl hover:border-blue-400 dark:hover:border-blue-600/60 hover:-translate-y-1 backdrop-blur-sm transition-all duration-500 cursor-default">
+                        class="group p-8 rounded-2xl bg-card border border-border hover:shadow-xl hover:-translate-y-1 backdrop-blur-sm transition-all duration-500 cursor-default">
                         <div class="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
                             {{ feature.icon }}
                         </div>
                         <h3
-                            class="text-xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            class="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors">
                             {{ feature.title }}
                         </h3>
-                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed font-light">
+                        <p class="text-muted-foreground leading-relaxed font-light">
                             {{ feature.desc }}
                         </p>
                     </div>
@@ -309,7 +309,7 @@ onMounted(() => {
 
             <!-- Bottom CTA -->
             <div
-                class="mt-28 py-16 px-8 rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 dark:from-blue-600 dark:via-purple-500 dark:to-blue-500 text-white text-center shadow-2xl relative overflow-hidden">
+                class="mt-28 py-16 px-8 rounded-3xl bg-primary text-primary-foreground text-center shadow-2xl relative overflow-hidden">
                 <!-- Accent gradient -->
                 <div class="absolute inset-0 opacity-20 bg-gradient-to-r from-white to-transparent" />
                 <div class="relative z-10">
@@ -318,7 +318,7 @@ onMounted(() => {
                         Join thousands of learners who are already transforming their skills
                     </p>
                     <button v-if="canRegister" @click="openVerification('register')"
-                        class="inline-block px-8 py-3 rounded-xl font-semibold bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 transition-all duration-300 transform hover:scale-105">
+                        class="inline-block px-8 py-3 rounded-xl font-semibold bg-primary-foreground text-primary hover:bg-primary-foreground/90 transition-all duration-300 transform hover:scale-105">
                         Create Free Account
                     </button>
                 </div>
@@ -327,67 +327,67 @@ onMounted(() => {
 
         <!-- Footer -->
         <footer
-            class="mt-32 py-12 border-t border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-950/60 backdrop-blur-xl">
+            class="mt-32 py-12 border-t border-border bg-background/80 backdrop-blur-xl">
             <div class="max-w-7xl mx-auto px-6 lg:px-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                     <!-- Logo Column -->
                     <div class="flex items-start">
                         <div class="flex items-center gap-2">
-                            <div
-                                class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                <span class="text-white font-bold">✦</span>
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                                    <span class="text-primary-foreground font-bold">✦</span>
+                                </div>
+                                <span
+                                    class="font-bold text-lg text-primary">
+                                    LevelUp Academy
+                                </span>
                             </div>
-                            <span
-                                class="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                                LevelUp Academy
-                            </span>
-                        </div>
                     </div>
 
                     <!-- Links Column 1 -->
                     <div class="space-y-3">
-                        <h4 class="font-semibold text-gray-900 dark:text-white text-sm">Product</h4>
+                        <h4 class="font-semibold text-foreground text-sm">Product</h4>
                         <div class="space-y-2">
                             <a href="#"
-                                class="text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">Features</a>
+                                class="text-muted-foreground hover:text-primary transition-colors text-sm">Features</a>
                             <a href="#"
-                                class="block text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">Pricing</a>
+                                class="block text-muted-foreground hover:text-primary transition-colors text-sm">Pricing</a>
                             <a href="#"
-                                class="block text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">Security</a>
+                                class="block text-muted-foreground hover:text-primary transition-colors text-sm">Security</a>
                         </div>
                     </div>
 
                     <!-- Links Column 2 -->
                     <div class="space-y-3">
-                        <h4 class="font-semibold text-gray-900 dark:text-white text-sm">Company</h4>
+                        <h4 class="font-semibold text-foreground text-sm">Company</h4>
                         <div class="space-y-2">
                             <a href="#"
-                                class="block text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">Docs</a>
+                                class="block text-muted-foreground hover:text-primary transition-colors text-sm">Docs</a>
                             <a href="#"
-                                class="block text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">Privacy</a>
+                                class="block text-muted-foreground hover:text-primary transition-colors text-sm">Privacy</a>
                             <a href="#"
-                                class="block text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">Contact</a>
+                                class="block text-muted-foreground hover:text-primary transition-colors text-sm">Contact</a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Bottom Section -->
                 <div
-                    class="pt-8 border-t border-gray-200/50 dark:border-gray-800/50 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p class="text-gray-700 dark:text-gray-400 text-sm">
+                    class="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p class="text-muted-foreground text-sm">
                         © 2025 LevelUp Academy. All rights reserved.
                     </p>
                     <div class="flex gap-6">
                         <a href="#"
-                            class="text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium">
+                            class="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">
                             Terms
                         </a>
                         <a href="#"
-                            class="text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium">
+                            class="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">
                             Privacy
                         </a>
                         <a href="#"
-                            class="text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium">
+                            class="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">
                             Contact
                         </a>
                     </div>
@@ -402,19 +402,19 @@ onMounted(() => {
                     <!-- Backdrop -->
                     <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" @click="showModal = false" />
                     <!-- Modal Content -->
-                    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full">
+                    <div class="relative bg-card border border-border rounded-2xl shadow-2xl p-8 max-w-md w-full">
                         <button @click="showModal = false"
-                            class="absolute top-5 right-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                            class="absolute top-5 right-5 text-muted-foreground hover:text-foreground transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                         <div class="text-center">
-                            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Learn More</h2>
-                            <p class="text-gray-700 dark:text-gray-300 mb-6">Exciting features coming soon...</p>
+                            <h2 class="text-3xl font-bold text-foreground mb-2">Learn More</h2>
+                            <p class="text-muted-foreground mb-6">Exciting features coming soon...</p>
                             <button @click="showModal = false"
-                                class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium">
+                                class="px-6 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium">
                                 Close
                             </button>
                         </div>
