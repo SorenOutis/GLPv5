@@ -379,12 +379,52 @@ const demoXPToast = () => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <!-- Announcements Banner Section -->
+            <div v-if="announcements.length > 0" class="space-y-2">
+                <div 
+                    v-for="announcement in announcements.slice(0, 1)" 
+                    :key="announcement.id"
+                    class="relative overflow-hidden rounded-lg bg-gradient-to-r from-accent/80 via-accent/70 to-accent/80 border border-accent/50 p-4 shadow-lg"
+                >
+                    <!-- Decorative background elements -->
+                    <div class="absolute -right-20 -top-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -left-20 -bottom-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4">
+                            <!-- Announcement Icon -->
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 7a1 1 0 112 0 1 1 0 01-2 0zm-.5 5a.5.5 0 11-1 0 .5.5 0 011 0zm4 0a.5.5 0 11-1 0 .5.5 0 011 0z" />
+                                </svg>
+                            </div>
+                            
+                            <!-- Announcement Content -->
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-white">{{ announcement.title }}</p>
+                                <p v-if="announcement.description" class="text-xs text-white/80 mt-0.5 line-clamp-2">{{ announcement.description }}</p>
+                            </div>
+                            
+                            <!-- Close Button -->
+                            <button 
+                                @click="announcements = announcements.filter(a => a.id !== announcement.id)"
+                                class="flex-shrink-0 text-white hover:text-white/70 transition-colors p-1"
+                                aria-label="Close announcement"
+                            >
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Hero Banner Section -->
             <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-accent/20 via-accent/10 to-transparent border border-accent/30 p-6 mb-4 shadow-sm">
                 <!-- Decorative background elements -->
                 <div class="absolute -right-20 -top-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl"></div>
                 <div class="absolute -left-20 -bottom-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl"></div>
-                
                 
                 <div class="relative z-10">
                     <div class="flex items-start justify-between gap-6">
