@@ -30,10 +30,14 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@codemirror/lang-java": "^6.0.2",
+        "@codemirror/lang-javascript": "^6.2.4",
+        "@codemirror/lang-python": "^6.2.1",
         "@inertiajs/vue3": "^2.1.0",
         "@vueuse/core": "^12.8.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "codemirror": "^6.0.2",
         "laravel-vite-plugin": "^2.0.0",
         "lucide-vue-next": "^0.468.0",
         "reka-ui": "^2.4.1",

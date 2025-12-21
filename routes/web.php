@@ -70,6 +70,10 @@ Route::get('coding', [\App\Http\Controllers\CodingController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('coding');
 
+Route::get('coding/{challenge}', [\App\Http\Controllers\CodingController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('coding.show');
+
 Route::post('community', [\App\Http\Controllers\CommunityController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('community.store');
@@ -128,6 +132,10 @@ Route::prefix('api')->group(function () {
         
         // Streak Leaderboard Route
         Route::get('streaks/leaderboard', [\App\Http\Controllers\Api\StreakLeaderboardController::class, 'index']);
+
+        // Coding Submission Routes
+        Route::post('coding/run', [\App\Http\Controllers\Api\CodingSubmissionController::class, 'run']);
+        Route::post('coding/submit', [\App\Http\Controllers\Api\CodingSubmissionController::class, 'submit']);
     });
 });
 

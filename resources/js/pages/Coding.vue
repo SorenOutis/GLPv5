@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import Button from '@/components/ui/button/Button.vue';
 import Card from '@/components/ui/card/Card.vue';
@@ -102,6 +102,10 @@ const getResourceTypeColor = (type: string) => {
         'Challenge': 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
     };
     return colors[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+};
+
+const openChallenge = (challengeId: number) => {
+    router.visit(`/coding/${challengeId}`);
 };
 </script>
 
@@ -210,6 +214,7 @@ const getResourceTypeColor = (type: string) => {
                         v-for="challenge in filteredChallenges"
                         :key="challenge.id"
                         class="group relative"
+                        @click="openChallenge(challenge.id)"
                     >
                         <Card class="border-sidebar-border/70 dark:border-sidebar-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
                             <div class="absolute top-0 left-0 w-1 h-full transition-all duration-300"

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CodingChallenge;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,59 +22,20 @@ class CodingController extends Controller
             'rank_title' => 'Plastic',
         ]);
 
-        // Prepare coding challenges (sample data)
-        $challenges = [
-            [
-                'id' => 1,
-                'title' => 'Hello World',
-                'difficulty' => 'Beginner',
-                'description' => 'Write a program that prints "Hello, World!" to the console.',
-                'xpReward' => 50,
+        // Fetch active coding challenges from database
+        $challenges = CodingChallenge::where('is_active', true)
+            ->get()
+            ->map(fn($challenge) => [
+                'id' => $challenge->id,
+                'title' => $challenge->title,
+                'difficulty' => $challenge->difficulty,
+                'description' => $challenge->description,
+                'xpReward' => $challenge->xp_reward,
                 'completed' => false,
-                'language' => 'JavaScript',
-                'category' => 'Basics',
-            ],
-            [
-                'id' => 2,
-                'title' => 'Sum of Numbers',
-                'difficulty' => 'Beginner',
-                'description' => 'Create a function that returns the sum of two numbers.',
-                'xpReward' => 75,
-                'completed' => false,
-                'language' => 'JavaScript',
-                'category' => 'Functions',
-            ],
-            [
-                'id' => 3,
-                'title' => 'Fibonacci Sequence',
-                'difficulty' => 'Intermediate',
-                'description' => 'Generate the first n numbers in the Fibonacci sequence.',
-                'xpReward' => 150,
-                'completed' => false,
-                'language' => 'JavaScript',
-                'category' => 'Algorithms',
-            ],
-            [
-                'id' => 4,
-                'title' => 'Palindrome Checker',
-                'difficulty' => 'Intermediate',
-                'description' => 'Check if a string is a palindrome.',
-                'xpReward' => 125,
-                'completed' => false,
-                'language' => 'JavaScript',
-                'category' => 'Strings',
-            ],
-            [
-                'id' => 5,
-                'title' => 'Binary Search',
-                'difficulty' => 'Advanced',
-                'description' => 'Implement a binary search algorithm.',
-                'xpReward' => 250,
-                'completed' => false,
-                'language' => 'JavaScript',
-                'category' => 'Algorithms',
-            ],
-        ];
+                'language' => $challenge->language,
+                'category' => $challenge->category,
+            ])
+            ->toArray();
 
         // Prepare statistics
         $stats = [
@@ -119,6 +81,28 @@ class CodingController extends Controller
             'resources' => $resources,
             'userLevel' => $profile->level,
             'userName' => $user->name,
+        ]);
+    }
+
+    public function show(CodingChallenge $challenge)
+    {
+        $formattedChallenge = [
+            'id' => $challenge->id,
+            'title' => $challenge->title,
+            'difficulty' => $challenge->difficulty,
+            'description' => $challenge->description,
+            'problem_statement' => $challenge->problem_statement,
+            'requirements' => $challenge->requirements ?? [],
+            'example_input' => $challenge->example_input,
+            'example_output' => $challenge->example_output,
+            'tips' => $challenge->tips ?? [],
+            'xpReward' => $challenge->xp_reward,
+            'language' => $challenge->language,
+            'category' => $challenge->category,
+        ];
+
+        return Inertia::render('ChallengeSolver', [
+            'challenge' => $formattedChallenge,
         ]);
     }
 }
