@@ -81,6 +81,11 @@ class User extends Authenticatable
         return $this->hasMany(\App\Models\Notification::class)->orderBy('created_at', 'desc');
     }
 
+    public function gameProgresses()
+    {
+        return $this->hasMany(\App\Models\GameProgress::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

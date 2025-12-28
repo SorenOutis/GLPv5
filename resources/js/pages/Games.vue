@@ -132,19 +132,19 @@ const getStatusIcon = (status: string) => {
 <template>
     <Head title="Games" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="space-y-6">
+        <div class="space-y-6 px-4 sm:px-0">
             <!-- Header Section -->
             <div class="space-y-2">
-                <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                     {{ props.games.length }} Games
                 </h1>
-                <p class="text-slate-600 dark:text-slate-400">
+                <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400">
                     Play interactive games and earn XP while learning
                 </p>
             </div>
 
             <!-- Stats Cards -->
-            <div v-if="!isLoading" class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+            <div v-if="!isLoading" class="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                 <Card>
                     <CardHeader class="pb-2">
                         <CardTitle class="text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -227,22 +227,22 @@ const getStatusIcon = (status: string) => {
                 </Card>
             </div>
 
-            <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+            <div v-else class="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                 <SkeletonStats v-for="i in 6" :key="i" />
             </div>
 
             <!-- Filters -->
-            <div class="space-y-4">
+            <div class="space-y-3 sm:space-y-4">
                 <!-- Status Filter -->
                 <div class="space-y-2">
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Status</h3>
-                    <div class="flex flex-wrap gap-2">
+                    <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">Status</h3>
+                    <div class="flex flex-wrap gap-1.5 sm:gap-2">
                         <Button
                             v-for="status in ['all', 'playing', 'completed', 'available']"
                             :key="status"
                             :variant="selectedFilter === status ? 'default' : 'outline'"
                             @click="selectedFilter = status as any"
-                            class="capitalize"
+                            class="capitalize text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-10"
                         >
                             {{ status === 'all' ? 'All Games' : status.replace('_', ' ') }}
                         </Button>
@@ -251,13 +251,14 @@ const getStatusIcon = (status: string) => {
 
                 <!-- Category Filter -->
                 <div class="space-y-2">
-                    <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Category</h3>
-                    <div class="flex flex-wrap gap-2">
+                    <h3 class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">Category</h3>
+                    <div class="flex flex-wrap gap-1.5 sm:gap-2">
                         <Button
                             v-for="category in getCategories()"
                             :key="category"
                             :variant="selectedCategory === category ? 'default' : 'outline'"
                             @click="selectedCategory = category"
+                            class="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-10"
                         >
                             {{ category }}
                         </Button>
@@ -266,24 +267,24 @@ const getStatusIcon = (status: string) => {
             </div>
 
             <!-- Games Grid -->
-            <div v-if="!isLoading" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div v-if="!isLoading" class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <Card
                     v-for="game in getFilteredGames()"
                     :key="game.id"
                     class="overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col"
                 >
                     <!-- Game Thumbnail -->
-                    <div class="relative h-48 overflow-hidden bg-gradient-to-br" :class="getDifficultyGradient(game.difficulty)">
+                    <div class="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br" :class="getDifficultyGradient(game.difficulty)">
                         <img
                             :src="game.thumbnail"
                             :alt="game.name"
                             class="h-full w-full object-cover opacity-80"
                         />
-                        <div class="absolute inset-0 flex items-end justify-between p-4 bg-gradient-to-t from-black/60 to-transparent">
-                            <span class="text-3xl">{{ game.badge }}</span>
+                        <div class="absolute inset-0 flex items-end justify-between p-3 sm:p-4 bg-gradient-to-t from-black/60 to-transparent">
+                            <span class="text-2xl sm:text-3xl">{{ game.badge }}</span>
                             <div class="flex gap-2">
                                 <span
-                                    :class="['px-3 py-1 rounded-full text-xs font-semibold', getDifficultyColor(game.difficulty)]"
+                                    :class="['px-2 sm:px-3 py-1 rounded-full text-xs font-semibold', getDifficultyColor(game.difficulty)]"
                                 >
                                     {{ game.difficulty }}
                                 </span>
@@ -292,28 +293,28 @@ const getStatusIcon = (status: string) => {
                     </div>
 
                     <!-- Game Content -->
-                    <CardHeader>
-                        <div class="space-y-2">
-                            <div class="flex items-start justify-between gap-2">
-                                <CardTitle class="line-clamp-2">{{ game.name }}</CardTitle>
+                    <CardHeader class="pb-3 sm:pb-6">
+                        <div class="space-y-1 sm:space-y-2">
+                            <div class="flex items-start justify-between gap-1 sm:gap-2">
+                                <CardTitle class="line-clamp-2 text-base sm:text-lg">{{ game.name }}</CardTitle>
                                 <span
-                                    :class="['px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap', getStatusBadgeColor(game.status)]"
+                                    :class="['px-2 py-0.5 sm:py-1 rounded-full text-xs font-semibold whitespace-nowrap', getStatusBadgeColor(game.status)]"
                                 >
                                     {{ getStatusLabel(game.status) }}
                                 </span>
                             </div>
-                            <CardDescription>{{ game.category }}</CardDescription>
+                            <CardDescription class="text-xs sm:text-sm">{{ game.category }}</CardDescription>
                         </div>
                     </CardHeader>
 
-                    <CardContent class="flex-1 space-y-4">
-                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                    <CardContent class="flex-1 space-y-3 sm:space-y-4 px-4 sm:px-6">
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
                             {{ game.description }}
                         </p>
 
                         <!-- Progress Bar (if playing or completed) -->
-                        <div v-if="game.status !== 'not_started'" class="space-y-2">
-                            <div class="flex items-center justify-between text-sm">
+                        <div v-if="game.status !== 'not_started'" class="space-y-1 sm:space-y-2">
+                            <div class="flex items-center justify-between text-xs sm:text-sm">
                                 <span class="text-slate-600 dark:text-slate-400">Progress</span>
                                 <span class="font-semibold text-slate-900 dark:text-white">{{ game.progress }}%</span>
                             </div>
@@ -321,24 +322,24 @@ const getStatusIcon = (status: string) => {
                         </div>
 
                         <!-- Stats -->
-                        <div class="grid grid-cols-3 gap-4 pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <div class="grid grid-cols-3 gap-2 sm:gap-4 pt-2 sm:pt-3 border-t border-slate-200 dark:border-slate-700">
                             <div class="text-center">
-                                <div class="flex items-center justify-center gap-1 text-slate-600 dark:text-slate-400 mb-1">
-                                    <Star class="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <div class="flex items-center justify-center gap-0.5 sm:gap-1 text-slate-600 dark:text-slate-400 mb-0.5 sm:mb-1">
+                                    <Star class="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-yellow-400 text-yellow-400" />
                                     <span class="text-xs font-semibold">{{ game.rating }}</span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-500">Rating</p>
                             </div>
                             <div class="text-center">
-                                <div class="flex items-center justify-center gap-1 text-slate-600 dark:text-slate-400 mb-1">
-                                    <Users class="h-3 w-3" />
+                                <div class="flex items-center justify-center gap-0.5 sm:gap-1 text-slate-600 dark:text-slate-400 mb-0.5 sm:mb-1">
+                                    <Users class="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                     <span class="text-xs font-semibold">{{ (game.players / 1000).toFixed(1) }}k</span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-500">Players</p>
                             </div>
                             <div class="text-center">
-                                <div class="flex items-center justify-center gap-1 text-slate-600 dark:text-slate-400 mb-1">
-                                    <Clock class="h-3 w-3" />
+                                <div class="flex items-center justify-center gap-0.5 sm:gap-1 text-slate-600 dark:text-slate-400 mb-0.5 sm:mb-1">
+                                    <Clock class="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                     <span class="text-xs font-semibold">{{ game.timeSpent }}</span>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-500">Time</p>
@@ -347,12 +348,12 @@ const getStatusIcon = (status: string) => {
                     </CardContent>
 
                     <!-- Action Button -->
-                    <div class="px-6 pb-6">
+                    <div class="px-4 sm:px-6 pb-4 sm:pb-6">
                         <Button
-                            class="w-full gap-2"
+                            class="w-full gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-10"
                             :variant="game.status === 'not_started' ? 'outline' : 'default'"
                         >
-                            <component :is="getStatusIcon(game.status)" class="h-4 w-4" />
+                            <component :is="getStatusIcon(game.status)" class="h-3 w-3 sm:h-4 sm:w-4" />
                             {{ game.status === 'completed' ? 'Play Again' : game.status === 'playing' ? 'Continue' : 'Start Game' }}
                         </Button>
                     </div>
@@ -360,16 +361,16 @@ const getStatusIcon = (status: string) => {
             </div>
 
             <!-- Loading Skeleton -->
-            <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div v-else class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <SkeletonCard v-for="i in 6" :key="i" />
             </div>
 
             <!-- Empty State -->
             <div
                 v-if="!isLoading && getFilteredGames().length === 0"
-                class="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-900/30"
+                class="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 sm:p-8 text-center dark:border-slate-700 dark:bg-slate-900/30"
             >
-                <p class="text-slate-600 dark:text-slate-400">
+                <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400">
                     No games found matching your filters.
                 </p>
             </div>
